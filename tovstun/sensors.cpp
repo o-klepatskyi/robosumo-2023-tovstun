@@ -1,0 +1,6 @@
+#include "sensors.hpp"
+
+Ultrasonic forward_left_ultrasonic(forward_left_ultrasonic_trig_pin, forward_left_ultrasonic_echo_pin);
+Ultrasonic forward_right_ultrasonic(forward_right_ultrasonic_trig_pin, forward_right_ultrasonic_echo_pin);
+Ultrasonic left_ultrasonic(left_ultrasonic_trig_pin, left_ultrasonic_echo_pin);
+Ultrasonic right_ultrasonic(right_ultrasonic_trig_pin, right_ultrasonic_echo_pin);
