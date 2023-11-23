@@ -21,6 +21,26 @@ const int right_ultrasonic_echo_pin = 7;
 extern Ultrasonic right_ultrasonic;
 
 // illumination sensors (ANALOG)
-const int forward_left_illumination_pin = 0;
-const int forward_right_illumination_pin = 1;
-const int backward_illumination_pin = 2;
+const int forward_left_illumination_pin = A0;
+const int forward_right_illumination_pin = A1;
+const int backward_illumination_pin = A2;
+
+struct Illumination_sensor {
+  static constexpr int threshold = 50;
+
+  Illumination_sensor(int pin) : pin{pin}
+  {
+    pinMode(pin, INPUT);
+  }
+  /**
+   * Is there an obsticle?
+   */
+  bool collides() 
+  {
+    return analogRead(pin) >= threshold;
+  }
+  int pin;
+};
+extern Illumination_sensor forward_left_illumination_sensor;
+extern Illumination_sensor forward_right_illumination_sensor;
+extern Illumination_sensor backward_left_illumination_sensor;
