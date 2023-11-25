@@ -33,12 +33,17 @@ struct Illumination_sensor {
     pinMode(pin, INPUT);
   }
   /**
-   * Is there an obsticle?
+   * Is there an obstacle?
    */
   bool collides() 
   {
-    return analogRead(pin) >= threshold;
+    return read() >= threshold;
   }
+
+  int read() {
+    return analogRead(pin);
+  }
+
   int pin;
 };
 extern Illumination_sensor forward_left_illumination_sensor;
