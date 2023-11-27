@@ -17,10 +17,20 @@ void initialize_motors();
  */
 
 struct Motor {
+  // duration of useful movement 
+  constexpr static unsigned move_duration{500};
+  // duration of stoping
+  constexpr static unsigned stop_duration{50};
   Motor(int pin): prev_speed{90} 
   {
     motor.attach(pin);
     write_for(90, 1000);
+  }
+  // prepare motor to move forward (if it moved backwards last time)
+  void prepare_move_forward()
+  {
+    if(prev_speed < 90)
+      write_for(90, 500);
   }
   /**
    * \param speed = speed from 0 to 90
@@ -28,10 +38,23 @@ struct Motor {
   void move_forward(int speed)
   {
     speed += 90;
-    if(prev_speed < 90)
-      write_for(90, 500);
-    motor.write(speed);
+    prepare_move_forward();
+    write_for(speed, move_duration);
     prev_speed = speed;
+    write_for(90, stop_duration);
+  }
+  // prepare motor to move backward (if it moved forward last time)
+  void prepare_move_backward()
+  {
+     if(prev_speed >= 90) {
+      write_for(90, 200);
+      write_for(0, 200);
+      write_for(90, 200);
+      write_for(87, 200);
+      write_for(90, 200);
+      write_for(87, 200);
+    }
+    prev_speed = 87;
   }
   /**
    * \param speed = speed from 0 to 90
@@ -39,16 +62,12 @@ struct Motor {
   void move_backward(int speed)
   {
     speed = 90 - speed;
-    if(prev_speed >= 90) {
-      write_for(90, 500);
-      write_for(0, 500);
-      write_for(90, 500);
-      write_for(87, 500);
-      write_for(90, 500);
-      write_for(87, 500);
-    }
-    motor.write(speed);
+    prepare_move_backward();
+    Serial.println("moving backwards");
+    write_for(speed, move_duration);
     prev_speed = speed;
+   // delay(1000);
+    write_for(90, stop_duration);
   }
   /**
    * write speed value for selected time;
@@ -59,7 +78,7 @@ struct Motor {
     while(millis() - prevMillis <= miliseconds)
       motor.write(speed);
   }
-
+ 
 
   // prev speed in range 0 - 180 (natrual speed for the motor)
   int prev_speed;
@@ -69,6 +88,10 @@ struct Motor {
 
 extern Motor left_motor;
 extern Motor right_motor;
+
+void move_forward(int speed);
+void move_backward(int speed);
+
 
 struct Flag {
   static constexpr int RAISED = 120;
@@ -88,3 +111,5 @@ struct Flag {
 };
 
 extern Flag flag;
+
+
