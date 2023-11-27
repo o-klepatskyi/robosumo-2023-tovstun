@@ -19,4 +19,9 @@ void move_backward(int speed)
   left_motor.move_backward(speed);
   right_motor.move_backward(speed);
 }
+void stop()
+{
+  left_motor.move_forward(0);
+  right_motor.move_forward(0);
+}
 Flag flag;
