@@ -1,7 +1,7 @@
 #include "motors.hpp"
 
-Motor left_motor{ left_motor_pin };
-Motor right_motor{ right_motor_pin };
+// Motor left_motor{left_motor_pin};
+// Motor right_motor{right_motor_pin};
 
 void move_forward(int speed) {
   left_motor.prepare_move_forward();
@@ -23,5 +23,4 @@ void stop() {
   left_motor.move_forward(0);
   right_motor.move_forward(0);
 }
-
-Flag flag;
+// Flag flag;

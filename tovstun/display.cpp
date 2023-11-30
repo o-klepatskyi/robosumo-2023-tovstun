@@ -1,3 +1,3 @@
 #include "display.hpp"
 
-Display display{ display_i2c_address, 16, 2 };
+// Display display{display_i2c_address, 16, 2};
