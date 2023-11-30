@@ -27,25 +27,25 @@ const int backward_illumination_pin = A2;
 
 struct Illumination_sensor {
   static constexpr int threshold = 50;
+  int pin;
 
-  Illumination_sensor(int pin) : pin{pin}
-  {
+  Illumination_sensor(int pin)
+    : pin{ pin } {
     pinMode(pin, INPUT);
   }
+
   /**
    * Is there an obstacle?
    */
-  bool collides() 
-  {
+  bool collides() {
     return read() >= threshold;
   }
 
   int read() {
     return analogRead(pin);
   }
-
-  int pin;
 };
+
 extern Illumination_sensor forward_left_illumination_sensor;
 extern Illumination_sensor forward_right_illumination_sensor;
 extern Illumination_sensor backward_left_illumination_sensor;

@@ -6,7 +6,6 @@
 #include "debug.hpp"
 
 void setup() {
-  
 }
 
 void loop() {

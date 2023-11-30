@@ -9,7 +9,7 @@ const int display_i2c_address = 0x27;
 struct Display {
 public:
   Display(int address, int col_count, int row_count)
-    : lcd{address, col_count, row_count}, max_row_count{row_count} {
+    : lcd{ address, col_count, row_count }, max_row_count{ row_count } {
     lcd.init();
   }
 
