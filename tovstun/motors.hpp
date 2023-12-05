@@ -18,13 +18,15 @@ void initialize_motors();
 struct Motor {
   // prev speed in range 0 - 180 (natrual speed for the motor)
   int prev_speed;
+  int pin;
   Servo motor;
   // duration of useful movement
   constexpr static unsigned move_duration{ 500 };
   // duration of stoping
   constexpr static unsigned stop_duration{ 50 };
-  Motor(int pin)
-    : prev_speed{ 90 } {
+  Motor(int pin) : prev_speed{ 90 }, pin{pin} {}
+  void attach()
+  {
     motor.attach(pin);
     write_for(90, 1000);
   }
@@ -84,26 +86,4 @@ struct Motor {
 extern Motor left_motor;
 extern Motor right_motor;
 
-void move_forward(int speed);
-void move_backward(int speed);
 
-struct Flag {
-  Servo flag;
-
-  static constexpr int RAISED = 120;
-  static constexpr int LOWERED = 50;
-
-  Flag() {
-    flag.attach(flag_servo_pin);
-  }
-
-  void raise() {
-    flag.write(RAISED);
-  }
-
-  void lower() {
-    flag.write(LOWERED);
-  }
-};
-
-extern Flag flag;
