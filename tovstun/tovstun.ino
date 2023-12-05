@@ -1,11 +1,12 @@
 
 #include "sensors.hpp"
-//#include "motors.hpp"
+#include "motors.hpp"
 //#include "display.hpp"
 //#include "debug.hpp"
 
 void setup() {
   Serial.begin(9600);
+  motors.attach();
   Serial.println("Hello world!");
 }
 int speed = 0;
@@ -33,5 +34,5 @@ void loop() {
   // }
  // Serial.println(forward_left_ultrasonic.read());
   Serial.println(forward_right_ultrasonic.read());
-  delay(1000);
+  delay(100);
 }

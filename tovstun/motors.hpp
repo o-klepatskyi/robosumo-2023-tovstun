@@ -9,84 +9,6 @@ const int right_motor_pin = 10;
 // servo for the flag
 const int flag_servo_pin = 11;
 
-void initialize_motors();
-/**
-  \param motor the motor to rotate
-  \param speed the speed in [0, 90]
- */
-
-struct Motor {
-  // prev speed in range 0 - 180 (natrual speed for the motor)
-  int prev_speed;
-  Servo motor;
-  // duration of useful movement
-  constexpr static unsigned move_duration{ 500 };
-  // duration of stoping
-  constexpr static unsigned stop_duration{ 50 };
-  Motor(int pin)
-    : prev_speed{ 90 } {
-    motor.attach(pin);
-    write_for(90, 1000);
-  }
-
-  // prepare motor to move forward (if it moved backwards last time)
-  void prepare_move_forward() {
-    if (prev_speed < 90)
-      write_for(90, 500);
-  }
-
-  /**
-   * \param speed = speed from 0 to 90
-  */
-  void move_forward(int speed) {
-    speed += 90;
-    prepare_move_forward();
-    write_for(speed, move_duration);
-    prev_speed = speed;
-    write_for(90, stop_duration);
-  }
-  // prepare motor to move backward (if it moved forward last time)
-  void prepare_move_backward() {
-    if (prev_speed >= 90) {
-      write_for(90, 200);
-      write_for(0, 200);
-      write_for(90, 200);
-      write_for(87, 200);
-      write_for(90, 200);
-      write_for(87, 200);
-    }
-    prev_speed = 87;
-  }
-
-  /**
-   * \param speed = speed from 0 to 90
-  */
-  void move_backward(int speed) {
-    speed = 90 - speed;
-    prepare_move_backward();
-    Serial.println("moving backwards");
-    write_for(speed, move_duration);
-    prev_speed = speed;
-    // delay(1000);
-    write_for(90, stop_duration);
-  }
-
-  /**
-   * write speed value for selected time;
-   */
-  void write_for(int speed, unsigned long miliseconds) {
-    unsigned long prevMillis = millis();
-    while (millis() - prevMillis <= miliseconds)
-      motor.write(speed);
-  }
-};
-
-extern Motor left_motor;
-extern Motor right_motor;
-
-void move_forward(int speed);
-void move_backward(int speed);
-
 struct Flag {
   Servo flag;
 
@@ -107,3 +29,164 @@ struct Flag {
 };
 
 extern Flag flag;
+
+
+struct Motors {
+
+  void attach() {
+    l_motor.attach(left_motor_pin);
+    r_motor.attach(right_motor_pin);
+  }
+  void prepare_forward() {
+    if (l_prev_speed >= 90 && r_prev_speed >= 90)
+      return;
+    unsigned long prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (l_prev_speed < 90)
+        l_motor.write(90);
+      if (r_prev_speed < 90)
+        r_motor.write(90);
+    }
+  }
+  // я навіть не буду намагатися писати коментарі англійською
+  // в цьому коді правди нема, а баги є
+  // воно таке страшне тільки тому, щоб перемикати назад не за 12с, а за 6(а то і менше)
+  void prepare_backward() {
+    if (l_prev_speed < 90 && r_prev_speed < 90)
+      return;
+    unsigned long prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (l_prev_speed >= 90)
+        l_motor.write(90);
+      if (r_prev_speed >= 90)
+        r_motor.write(90);
+    }
+    prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (l_prev_speed >= 90)
+        l_motor.write(0);
+      if (r_prev_speed >= 90)
+        r_motor.write(0);
+    }
+    prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (l_prev_speed >= 90)
+        l_motor.write(90);
+      if (r_prev_speed >= 90)
+        r_motor.write(90);
+    }
+    prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (l_prev_speed >= 90)
+        l_motor.write(87);
+      if (r_prev_speed >= 90)
+        r_motor.write(87);
+    }
+    prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (l_prev_speed >= 90)
+        l_motor.write(90);
+      if (r_prev_speed >= 90)
+        r_motor.write(90);
+    }
+    prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (l_prev_speed >= 90)
+        l_motor.write(87);
+      if (r_prev_speed >= 90)
+        r_motor.write(87);
+    }
+  }
+
+  void move_forward(int speed) {
+    prepare_forward();
+    speed += 90;
+    l_prev_speed = speed;
+    r_prev_speed = speed;
+    write_for(speed, 20);
+  }
+  void move_backward(int speed) {
+    prepare_backward();
+    speed = 90 - speed;
+    l_prev_speed = speed;
+    r_prev_speed = speed;
+    write_for(speed, 20);
+  }
+  prepare_left_forward_right_backward() {
+    if (l_prev_speed >= 90 && r_prev_speed < 90)
+      return;
+    unsigned long prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (l_prev_speed < 90)
+        l_motor.write(90);
+      if (r_prev_speed >= 90)
+        r_motor.write(90);
+    }
+    prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (r_prev_speed >= 90)
+        r_motor.write(90);
+    }
+    prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (r_prev_speed >= 90)
+        r_motor.write(87);
+    }
+    prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (r_prev_speed >= 90)
+        r_motor.write(90);
+    }
+    prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (r_prev_speed >= 90)
+        r_motor.write(87);
+    }
+  }
+    prepare_left_backward_right_forward() {
+    if (r_prev_speed >= 90 && l_prev_speed < 90)
+      return;
+    unsigned long prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (r_prev_speed < 90)
+        r_motor.write(90);
+      if (l_prev_speed >= 90)
+        l_motor.write(90);
+    }
+    prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (l_prev_speed >= 90)
+        l_motor.write(90);
+    }
+    prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (l_prev_speed >= 90)
+        l_motor.write(87);
+    }
+    prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (l_prev_speed >= 90)
+        l_motor.write(90);
+    }
+    prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (l_prev_speed >= 90)
+        l_motor.write(87);
+    }
+  }
+
+  void write_for(int speed, unsigned long miliseconds) {
+    unsigned long prevMillis = millis();
+    while (millis() - prevMillis <= miliseconds) {
+      l_motor.write(speed);
+      r_motor.write(speed);
+    }
+  }
+
+  int l_prev_speed = 90,
+      r_prev_speed = 90;
+  Servo l_motor,
+    r_motor;
+};
+
+extern Motors motors;
