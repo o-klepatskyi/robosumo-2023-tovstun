@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include "sensors.hpp"
 
 #include "display.hpp"
 #include "sensors.hpp"
@@ -19,4 +20,16 @@ void debug_display_print_illumination() {
 
   const char* const rows[] = { buffer[0], buffer[1] };
   display.print(rows, row_count);
+}
+void debug_serial_sensors()
+{
+  Serial.println("Ultrasonic: ");
+    Serial.print("FL: ");
+  Serial.println(forward_left_ultrasonic.read());
+  Serial.print("FR: ");
+  Serial.println(forward_right_ultrasonic.read());
+  Serial.print(" L: ");
+  Serial.println(left_ultrasonic.read());
+  Serial.print(" R: ");
+  Serial.println(right_ultrasonic.read());
 }
