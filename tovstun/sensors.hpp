@@ -49,3 +49,25 @@ struct Illumination_sensor {
 extern Illumination_sensor forward_left_illumination_sensor;
 extern Illumination_sensor forward_right_illumination_sensor;
 extern Illumination_sensor backward_left_illumination_sensor;
+
+struct SensorsData {
+  bool is_forward_left_obstacle;
+  bool is_forward_right_obstacle;
+  bool is_backward_left_obstacle;
+
+  int forward_left_ultrasonic_value;
+  int forward_right_ultrasonic_value;
+  int left_ultrasonic_value;
+  int right_ultrasonic_value;
+
+  static SensorsData read() {
+    return SensorsData {
+      forward_left_illumination_sensor.collides(),
+      forward_right_illumination_sensor.collides(),
+      forward_left_ultrasonic.read(),
+      forward_right_ultrasonic.read(),
+      left_ultrasonic.read(),
+      right_ultrasonic.read()
+    };
+  }
+};
