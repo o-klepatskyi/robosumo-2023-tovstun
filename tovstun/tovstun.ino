@@ -12,7 +12,6 @@ void setup() {
 }
 int speed = 0;
 void loop() {
- // debug_display_print_illumination();
   if(forward_left_ultrasonic.read() <= 20 || forward_right_ultrasonic.read() <= 20) {
     if(forward_left_illumination_sensor.collides() || forward_left_illumination_sensor.collides()) {
       speed = 0;

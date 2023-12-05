@@ -86,4 +86,6 @@ struct Motor {
 extern Motor left_motor;
 extern Motor right_motor;
 
+void move_forward(int speed);
+void move_backward(int speed);
 
