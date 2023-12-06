@@ -25,6 +25,8 @@ const int forward_left_illumination_pin = A0;
 const int forward_right_illumination_pin = A1;
 const int backward_illumination_pin = A2;
 
+const int red_button_pin = 13;
+
 struct Illumination_sensor {
   static constexpr int threshold = 50;
   int pin;

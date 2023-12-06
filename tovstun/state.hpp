@@ -9,7 +9,8 @@ enum class State {
   DeccelToSpeed,
   HoldSpeed,
   RotateLeftBack,
-  RotateRightBack
+  RotateRightBack,
+  RedButtonStopped,
 };
 
 struct StateData {

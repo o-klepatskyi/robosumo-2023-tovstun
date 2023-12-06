@@ -16,6 +16,7 @@ void setup()
 {
   Serial.begin(9600);
   motors.attach();
+  pinMode(red_button_pin, INPUT);
   Serial.println("Hello world!");
 
   prev_time = millis();
@@ -89,7 +90,7 @@ void loop()
     state_data.speed = -10;
   }
 
-  // THAT MUST BE LAST IFS: stop if we see white line
+  // THAT MUST BE BEFORE LAST IF: stop if we see white line
   if (state_data.speed > 0 && forward_right_illumination_sensor.collides() ||
       forward_left_illumination_sensor.collides()) {
     state = State::Stop;
@@ -97,6 +98,12 @@ void loop()
   if (state_data.speed < 0 && backward_left_illumination_sensor.collides()) {
     state = State::Stop;
   }
+  if (digitalRead(red_button_pin)) {
+    state = State::RedButtonStopped;
+    prev_state = State::RedButtonStopped;
+  }
+  if (prev_state == State::RedButtonStopped)
+    state = State::RedButtonStopped;
   //////////////////////////////////DEBUG///////////////////////////////////
   // if (forward_left_ultrasonic.read() < 20) {
   //   state = State::AccelToSpeed;
@@ -123,13 +130,13 @@ void loop()
   }
   else if (state == State::DeccelToSpeed) {
     Serial.println("DECCEL");
-    
+
     if (state_data.speed >= 0 && motors.get_unite_speed() > state_data.speed)
       motors.move(max(0, motors.get_unite_speed() - 3));
     else if (state_data.speed <= 0 && motors.get_unite_speed() < state_data.speed)
       motors.move(min(0, motors.get_unite_speed() + 3));
   }
-  else if (state == State::Stop) {
+  else if (state == State::Stop || state == State::RedButtonStopped) {
     motors.move(0);
   }
   Serial.print("TS: ");
