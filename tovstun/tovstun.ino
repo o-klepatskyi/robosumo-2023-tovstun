@@ -115,100 +115,22 @@ void loop()
   // State: accelerating
   if (state == State::AccelToSpeed) {
     Serial.println("ACCEL");
-    // if prev state was also accelerating or decelerating to speed
-    if (prev_state == State::Default || prev_state == State::AccelToSpeed || prev_state == State::DeccelToSpeed) {
-      // if previously we were acclerating to the same direction
-      if (motors.get_unite_speed() >= 0 && state_data.speed >= 0 ||
-          motors.get_unite_speed() < 0 && state_data.speed < 0) {
-        // just continue to accelerate
-        // if we need to accelerate more
-        if (abs(motors.get_unite_speed()) < abs(state_data.speed)) {
-          if (state_data.speed > 0)
-            motors.move_forward(motors.get_unite_speed() + 3);
-          else if (state_data.speed < 0)
-            motors.move_backward(abs(motors.get_unite_speed()) + 3);
-          Serial.println("increasing the speed");
-        }
-        Serial.println("speed is ok");
-        // ok, we are accelereting, but motors are in different state
-      }
-      else {
-        Serial.println("speed is not unite");
-        Serial.print("Motor: ");
-        Serial.println(motors.get_unite_speed());
-        if (state_data.speed > 0) {
-          motors.prepare_forward();
-          motors.move_forward(3);
-          Serial.println("Preparing moving forward 1");
-        }
-        else {
-          motors.prepare_backward();
-          motors.move_backward(3);
-          Serial.println("Preparing moving backward 1");
-        }
-      }
-    }
-    else {
-      if (state_data.speed > 0) {
-        motors.prepare_forward();
-        motors.move_forward(3);
-        Serial.println("Preparing moving forward 2");
-      }
-      else {
-        motors.prepare_backward();
-        motors.move_backward(3);
-        Serial.println("Preparing moving backward 2");
-      }
-    }
+
+    if (state_data.speed >= 0 && motors.get_unite_speed() < state_data.speed)
+      motors.move(motors.get_unite_speed() + 3);
+    else if (state_data.speed <= 0 && motors.get_unite_speed() > state_data.speed)
+      motors.move(motors.get_unite_speed() - 3);
   }
   else if (state == State::DeccelToSpeed) {
     Serial.println("DECCEL");
-    if (prev_state == State::Default || prev_state == State::DeccelToSpeed || prev_state == State::AccelToSpeed) {
-      if (motors.get_unite_speed() >= 0 && state_data.speed >= 0 ||
-          motors.get_unite_speed() < 0 && state_data.speed < 0) {
-        if (abs(motors.get_unite_speed()) > abs(state_data.speed)) {
-          if (state_data.speed > 0)
-            motors.move_forward(motors.get_unite_speed() - 3); // it is unsafe to decelrate to zero
-          else if (state_data.speed < 0)
-            motors.move_backward(abs(motors.get_unite_speed()) - 3);
-          else { // wee need to decelerate to zero
-            if (motors.get_unite_speed() > 0)
-              motors.move_forward((motors.get_unite_speed() > 3) ? (motors.get_unite_speed() - 3) : 0);
-            else
-              motors.move_backward((abs(motors.get_unite_speed()) > 3) ? (abs(motors.get_unite_speed()) - 3) : 0);
-          }
-          Serial.println("decreasing the speed");
-        }
-        Serial.println("speed is ok");
-      }
-      else {
-        Serial.println("speed is not unite");
-        Serial.print("Motor: ");
-        Serial.println(motors.get_unite_speed());
-        if (state_data.speed > 0) {
-          motors.prepare_forward();
-          motors.move_forward(3);
-          Serial.println("Preparing moving forward 3");
-        }
-        else {
-          motors.prepare_backward();
-          motors.move_backward(3);
-          Serial.println("Preparing moving backward 3");
-        }
-      }
-    }
-    else {
-      if (state_data.speed > 0) {
-        motors.prepare_forward();
-        motors.move_forward(3);
-        Serial.println("Preparing moving forward 4");
-      }
-      else {
-        motors.prepare_backward();
-        motors.move_backward(3);
-        Serial.println("Preparing moving backward 4");
-      }
-    }
+    
+    if (state_data.speed >= 0 && motors.get_unite_speed() > state_data.speed)
+      motors.move(max(0, motors.get_unite_speed() - 3));
+    else if (state_data.speed <= 0 && motors.get_unite_speed() < state_data.speed)
+      motors.move(min(0, motors.get_unite_speed() + 3));
+  }
+  else if (state == State::Stop) {
+    motors.move(0);
   }
   Serial.print("TS: ");
   Serial.println(state_data.speed);
