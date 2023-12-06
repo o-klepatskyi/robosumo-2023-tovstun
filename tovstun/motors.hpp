@@ -93,7 +93,23 @@ struct Motors {
         r_motor.write(87);
     }
   }
-
+  void move(int speed)
+  {
+    int actual_speed = speed + 90;
+    if (speed == 0) {
+      write_for(90, 20);
+    }
+    else if (speed > 0) {
+      prepare_forward();
+      write_for(actual_speed, 20);
+    }
+    else if (speed < 0) {
+      prepare_backward();
+      write_for(actual_speed, 20);
+    }
+    l_prev_speed = actual_speed;
+    r_prev_speed = actual_speed;
+  }
   void move_forward(int speed)
   {
     prepare_forward();
