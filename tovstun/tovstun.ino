@@ -119,7 +119,7 @@ void loop()
           Serial.println("Preparing moving forward");
         }
         else {
-          motors.prepare_forward();
+          motors.prepare_backward();
           motors.move_backward(3);
           Serial.println("Preparing moving backward");
         }
@@ -132,7 +132,49 @@ void loop()
         Serial.println("Preparing moving forward");
       }
       else {
+        motors.prepare_backward();
+        motors.move_backward(3);
+        Serial.println("Preparing moving backward");
+      }
+    }
+  }
+  else if (state == State::DeccelToSpeed) {
+    if (prev_state == State::DeccelToSpeed) {
+      if (motors.get_unite_speed() >= 0 && state_data.speed >= 0 ||
+          motors.get_unite_speed() < 0 && state_data.speed < 0) {
+        if (abs(motors.get_unite_speed()) > abs(state_data.speed)) {
+          if (state_data.speed > 0)
+            motors.move_forward(motors.get_unite_speed() - 3);
+          else if (state_data.speed < 0)
+            motors.move_backward(abs(motors.get_unite_speed()) - 3);
+          Serial.println("decreasing the speed");
+        }
+        Serial.println("speed is ok");
+      }
+      else {
+        Serial.println("speed is not unite");
+        Serial.print("Motor: ");
+        Serial.println(motors.get_unite_speed());
+        if (state_data.speed > 0) {
+          motors.prepare_forward();
+          motors.move_forward(3);
+          Serial.println("Preparing moving forward");
+        }
+        else {
+          motors.prepare_backward();
+          motors.move_backward(3);
+          Serial.println("Preparing moving backward");
+        }
+      }
+    }
+    else {
+      if (state_data.speed > 0) {
         motors.prepare_forward();
+        motors.move_forward(3);
+        Serial.println("Preparing moving forward");
+      }
+      else {
+        motors.prepare_backward();
         motors.move_backward(3);
         Serial.println("Preparing moving backward");
       }
