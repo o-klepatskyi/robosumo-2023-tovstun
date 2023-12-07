@@ -12,6 +12,9 @@ State next_state = State::Default;
 State prev_state = State::Default;
 StateData state_data{};
 
+
+
+int accelSpeed = 5;
 void setup()
 {
   Serial.begin(9600);
@@ -98,23 +101,28 @@ void loop()
   if (state_data.speed < 0 && backward_left_illumination_sensor.collides()) {
     state = State::Stop;
   }
-  if (digitalRead(red_button_pin)) {
-    state = State::RedButtonStopped;
-    prev_state = State::RedButtonStopped;
+  //////////////////////////////////DEBUG///////////////////////////////////
+  if (forward_left_ultrasonic.read() < 20) {
+    state = State::AccelToSpeed;
+    state_data.speed = accelSpeed;
   }
-  if (prev_state == State::RedButtonStopped)
-    state = State::RedButtonStopped;
+  else {
+    state = State::DeccelToSpeed;
+    // prev_state = state;
+    state_data.speed = 0;
+  }
   //////////////////////////////////DEBUG///////////////////////////////////
-  // if (forward_left_ultrasonic.read() < 20) {
-  //   state = State::AccelToSpeed;
-  //   state_data.speed = 15;
-  // }
-  // else {
-  //   state = State::DeccelToSpeed;
-  //   // prev_state = state;
-  //   state_data.speed = 0;
-  // }
-  //////////////////////////////////DEBUG///////////////////////////////////
+  //UNCOMENT FOR REAL FIGHT
+  if (digitalRead(red_button_pin)) {
+    Serial.println("RED BUTTON PRESSED");
+    // state = State::RedButtonStopped;
+    // prev_state = State::RedButtonStopped;
+    accelSpeed = -accelSpeed;
+  }
+  //////////////////////////////
+  // if (prev_state == State::RedButtonStopped)
+  //   state = State::RedButtonStopped;
+  // 
   Serial.print("STATE: ");
   Serial.println(static_cast<int>(state));
   Serial.print("PREV STATE: ");
@@ -124,17 +132,17 @@ void loop()
     Serial.println("ACCEL");
 
     if (state_data.speed >= 0 && motors.get_unite_speed() < state_data.speed)
-      motors.move(motors.get_unite_speed() + 3);
+      motors.move(motors.get_unite_speed() + 1);
     else if (state_data.speed <= 0 && motors.get_unite_speed() > state_data.speed)
-      motors.move(motors.get_unite_speed() - 3);
+      motors.move(motors.get_unite_speed() - 1);
   }
   else if (state == State::DeccelToSpeed) {
     Serial.println("DECCEL");
 
     if (state_data.speed >= 0 && motors.get_unite_speed() > state_data.speed)
-      motors.move(max(0, motors.get_unite_speed() - 3));
+      motors.move(max(0, motors.get_unite_speed() - 1));
     else if (state_data.speed <= 0 && motors.get_unite_speed() < state_data.speed)
-      motors.move(min(0, motors.get_unite_speed() + 3));
+      motors.move(min(0, motors.get_unite_speed() + 1));
   }
   else if (state == State::Stop || state == State::RedButtonStopped) {
     motors.move(0);
