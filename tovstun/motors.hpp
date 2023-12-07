@@ -30,6 +30,7 @@ struct Motors {
   {
     l_motor.attach(left_motor_pin);
     r_motor.attach(right_motor_pin);
+    write_for(90, 500);
   }
   void prepare_forward()
   {
@@ -51,47 +52,47 @@ struct Motors {
     if (l_prev_speed < 90 && r_prev_speed < 90)
       return;
     unsigned long prevMillis = millis();
-    while (millis() - prevMillis <= 500) {
+    while (millis() - prevMillis <= 80) {
       if (l_prev_speed >= 90)
         l_motor.write(90);
       if (r_prev_speed >= 90)
         r_motor.write(90);
     }
     prevMillis = millis();
-    while (millis() - prevMillis <= 500) {
+    while (millis() - prevMillis <= 80) {
       if (l_prev_speed >= 90)
         l_motor.write(0);
       if (r_prev_speed >= 90)
         r_motor.write(0);
     }
     prevMillis = millis();
-    while (millis() - prevMillis <= 500) {
+    while (millis() - prevMillis <= 80) {
       if (l_prev_speed >= 90)
         l_motor.write(90);
       if (r_prev_speed >= 90)
         r_motor.write(90);
     }
     prevMillis = millis();
-    while (millis() - prevMillis <= 500) {
+    while (millis() - prevMillis <= 80) {
       if (l_prev_speed >= 90)
         l_motor.write(87);
       if (r_prev_speed >= 90)
         r_motor.write(87);
     }
     prevMillis = millis();
-    while (millis() - prevMillis <= 500) {
+    while (millis() - prevMillis <= 80) {
       if (l_prev_speed >= 90)
         l_motor.write(90);
       if (r_prev_speed >= 90)
         r_motor.write(90);
     }
-    prevMillis = millis();
-    while (millis() - prevMillis <= 500) {
-      if (l_prev_speed >= 90)
-        l_motor.write(87);
-      if (r_prev_speed >= 90)
-        r_motor.write(87);
-    }
+    // prevMillis = millis();
+    // while (millis() - prevMillis <= 80) {
+    //   if (l_prev_speed >= 90)
+    //     l_motor.write(87);
+    //   if (r_prev_speed >= 90)
+    //     r_motor.write(87);
+    // }
   }
   void move(int speed)
   {
