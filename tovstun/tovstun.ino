@@ -84,6 +84,12 @@ void loop()
   Serial.println(left_ultrasonic.read());
   Serial.print("R: ");
   Serial.println(right_ultrasonic.read());
+  Serial.print("FL Illumination: ");
+  Serial.println(forward_left_illumination_sensor.read());
+  Serial.print("FR Illumination: ");
+  Serial.println(forward_right_illumination_sensor.read());
+  Serial.print("B Illumination : ");
+  Serial.println(backward_left_illumination_sensor.read());
 
   //  tick_state_machine();
   //  debug_display_print_illumination();
@@ -101,13 +107,13 @@ void loop()
   }
 
   // THAT MUST BE BEFORE LAST IF: stop if we see white line
-  if (state_data.speed > 0 && forward_right_illumination_sensor.collides() ||
-      forward_left_illumination_sensor.collides()) {
-    state = State::Stop;
-  }
-  if (state_data.speed < 0 && backward_left_illumination_sensor.collides()) {
-    state = State::Stop;
-  }
+  // if (state_data.speed > 0 && forward_right_illumination_sensor.collides() ||
+  //     forward_left_illumination_sensor.collides()) {
+  //   state = State::Stop;
+  // }
+  // if (state_data.speed < 0 && backward_left_illumination_sensor.collides()) {
+  //   state = State::Stop;
+  // }
   //////////////////////////////////DEBUG///////////////////////////////////
   // if (forward_left_ultrasonic.read() < 20) {
   //   state = State::AccelToSpeed;
