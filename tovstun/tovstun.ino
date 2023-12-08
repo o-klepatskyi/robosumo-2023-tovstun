@@ -78,6 +78,13 @@ void loop()
   prev_state = state;
   Serial.print("FL: ");
   Serial.println(forward_left_ultrasonic.read());
+  Serial.print("FR: ");
+  Serial.println(forward_right_ultrasonic.read());
+  Serial.print("L: ");
+  Serial.println(left_ultrasonic.read());
+  Serial.print("R: ");
+  Serial.println(right_ultrasonic.read());
+
   //  tick_state_machine();
   //  debug_display_print_illumination();
 
@@ -85,12 +92,12 @@ void loop()
   if ((forward_left_ultrasonic.read() <= 20 && forward_left_ultrasonic.read() != 0) ||
       (forward_right_ultrasonic.read() <= 20 && forward_right_ultrasonic.read() != 0)) {
     state = State::AccelToSpeed;
-    state_data.speed = 10;
+    state_data.speed = 3;
     // if there is nothing at front or sideways, accel + negative speed
   }
   else if (forward_left_ultrasonic.read() > 20 && forward_right_ultrasonic.read() > 20) {
     state = State::AccelToSpeed;
-    state_data.speed = -10;
+    state_data.speed = -3;
   }
 
   // THAT MUST BE BEFORE LAST IF: stop if we see white line
@@ -102,22 +109,22 @@ void loop()
     state = State::Stop;
   }
   //////////////////////////////////DEBUG///////////////////////////////////
-  if (forward_left_ultrasonic.read() < 20) {
-    state = State::AccelToSpeed;
-    state_data.speed = accelSpeed;
-  }
-  else {
-    state = State::DeccelToSpeed;
-    // prev_state = state;
-    state_data.speed = 0;
-  }
+  // if (forward_left_ultrasonic.read() < 20) {
+  //   state = State::AccelToSpeed;
+  //   state_data.speed = accelSpeed;
+  // }
+  // else {
+  //   state = State::DeccelToSpeed;
+  //   // prev_state = state;
+  //   state_data.speed = 0;
+  // }
   //////////////////////////////////DEBUG///////////////////////////////////
   //UNCOMENT FOR REAL FIGHT
   if (digitalRead(red_button_pin)) {
     Serial.println("RED BUTTON PRESSED");
     // state = State::RedButtonStopped;
     // prev_state = State::RedButtonStopped;
-    accelSpeed = -accelSpeed;
+   // accelSpeed = -accelSpeed;
   }
   //////////////////////////////
   // if (prev_state == State::RedButtonStopped)
