@@ -4,12 +4,12 @@
 #include <Ultrasonic.h>
 
 // ultrasonic sensors
-const int forward_left_ultrasonic_trig_pin = 11;
-const int forward_left_ultrasonic_echo_pin = 12;
+const int forward_left_ultrasonic_trig_pin = 2;
+const int forward_left_ultrasonic_echo_pin = 3;
 extern Ultrasonic forward_left_ultrasonic;
 
-const int forward_right_ultrasonic_trig_pin = 2;
-const int forward_right_ultrasonic_echo_pin = 3;
+const int forward_right_ultrasonic_trig_pin = 11;
+const int forward_right_ultrasonic_echo_pin = 12;
 extern Ultrasonic forward_right_ultrasonic;
 
 const int left_ultrasonic_trig_pin = 4;

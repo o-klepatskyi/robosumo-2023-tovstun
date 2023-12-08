@@ -98,6 +98,7 @@ void loop()
   if (state_data.speed < 0 && backward_left_illumination_sensor.collides()) {
     state = State::Stop;
   }
+  //CHANGE IT: && false is for debug *ONLY*
   if (digitalRead(red_button_pin)) {
     state = State::RedButtonStopped;
     prev_state = State::RedButtonStopped;
