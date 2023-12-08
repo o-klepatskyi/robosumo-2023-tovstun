@@ -19,9 +19,9 @@ void setup()
 {
   Serial.begin(9600);
   motors.attach();
+  motors.write_for(90, 2000);
   pinMode(red_button_pin, INPUT);
   Serial.println("Hello world!");
-
   prev_time = millis();
 }
 
