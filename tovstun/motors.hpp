@@ -191,7 +191,26 @@ struct Motors {
         l_motor.write(87);
     }
   }
-
+  void prepare_left()
+  {
+    if (r_prev_speed >= 90)
+      return;
+    unsigned long prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (r_prev_speed < 90)
+        r_motor.write(90);
+    }
+  }
+  void prepare_right()
+  {
+    if (l_prev_speed >= 90)
+      return;
+    unsigned long prevMillis = millis();
+    while (millis() - prevMillis <= 500) {
+      if (l_prev_speed < 90)
+        l_motor.write(90);
+    }
+  }
   void write_for(int speed, unsigned long miliseconds)
   {
     unsigned long prevMillis = millis();
@@ -199,6 +218,30 @@ struct Motors {
       l_motor.write(speed);
       r_motor.write(speed);
     }
+  }
+  void write_for_l(int speed, unsigned long miliseconds)
+  {
+    unsigned long prevMillis = millis();
+    while (millis() - prevMillis <= miliseconds) {
+      l_motor.write(speed);
+    }
+  }
+  void write_for_r(int speed, unsigned long miliseconds)
+  {
+    unsigned long prevMillis = millis();
+    while (millis() - prevMillis <= miliseconds) {
+      r_motor.write(speed);
+    }
+  }
+  void rotate_left(int speed)
+  {
+    prepare_left();
+    write_for_r(speed, 50);
+  }
+  void rotate_right(int speed)
+  {
+    prepare_right();
+    write_for_l(speed, 50);
   }
   // ASSUME: speed for motors is equal
   int get_unite_speed() { return l_prev_speed - 90; }
