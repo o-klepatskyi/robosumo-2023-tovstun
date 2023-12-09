@@ -16,6 +16,7 @@ void setup()
 {
   Serial.begin(9600);
   motors.attach();
+  motors.write_for(90, 2000);
   pinMode(red_button_pin, INPUT);
   Serial.println("Hello world!");
 
@@ -100,6 +101,7 @@ void loop()
   }
   //CHANGE IT: && false is for debug *ONLY*
   if (digitalRead(red_button_pin)) {
+    Serial.println("RED BUTTON PRESSED");
     state = State::RedButtonStopped;
     prev_state = State::RedButtonStopped;
   }
