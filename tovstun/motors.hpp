@@ -30,14 +30,14 @@ struct Motors {
   {
     l_motor.attach(left_motor_pin);
     r_motor.attach(right_motor_pin);
-    write_for(90, 500);
+    write_for(90, 2000);
   }
   void prepare_forward()
   {
     if (l_prev_speed >= 90 && r_prev_speed >= 90)
       return;
     unsigned long prevMillis = millis();
-    while (millis() - prevMillis <= 500) {
+    while (millis() - prevMillis <= 100) {
       if (l_prev_speed < 90)
         l_motor.write(90);
       if (r_prev_speed < 90)
@@ -47,53 +47,75 @@ struct Motors {
   // я навіть не буду намагатися писати коментарі англійською
   // в цьому коді правди нема, а баги є
   // воно таке страшне тільки тому, щоб перемикати назад не за 12с, а за 6(а то і менше)
-  void prepare_backward()
+  void prepare_backward_old()
   {
     if (l_prev_speed < 90 && r_prev_speed < 90)
       return;
     unsigned long prevMillis = millis();
-    while (millis() - prevMillis <= 80) {
+    while (millis() - prevMillis <= 500) {
       if (l_prev_speed >= 90)
         l_motor.write(90);
       if (r_prev_speed >= 90)
         r_motor.write(90);
     }
     prevMillis = millis();
-    while (millis() - prevMillis <= 80) {
+    while (millis() - prevMillis <= 500) {
       if (l_prev_speed >= 90)
         l_motor.write(0);
       if (r_prev_speed >= 90)
         r_motor.write(0);
     }
     prevMillis = millis();
-    while (millis() - prevMillis <= 80) {
+    while (millis() - prevMillis <= 500) {
       if (l_prev_speed >= 90)
         l_motor.write(90);
       if (r_prev_speed >= 90)
         r_motor.write(90);
     }
     prevMillis = millis();
-    while (millis() - prevMillis <= 80) {
+    while (millis() - prevMillis <= 500) {
       if (l_prev_speed >= 90)
         l_motor.write(87);
       if (r_prev_speed >= 90)
         r_motor.write(87);
     }
     prevMillis = millis();
-    while (millis() - prevMillis <= 80) {
+    while (millis() - prevMillis <= 500) {
       if (l_prev_speed >= 90)
         l_motor.write(90);
       if (r_prev_speed >= 90)
         r_motor.write(90);
     }
-    // prevMillis = millis();
-    // while (millis() - prevMillis <= 80) {
-    //   if (l_prev_speed >= 90)
-    //     l_motor.write(87);
-    //   if (r_prev_speed >= 90)
-    //     r_motor.write(87);
-    // }
+    prevMillis = millis();
+    while (millis() - prevMillis <= 5000) {
+      if (l_prev_speed >= 90)
+        l_motor.write(87);
+      if (r_prev_speed >= 90)
+        r_motor.write(87);
+    }
+    Serial.println("REAL BACKWARD");
   }
+  void prepare_backward()
+  {
+    if (l_prev_speed < 90 && r_prev_speed < 90)
+      return;
+    unsigned long prevMillis = millis();
+    while (millis() - prevMillis <= 100) {
+      if (l_prev_speed >= 90)
+        l_motor.write(87);
+      if (r_prev_speed >= 90)
+        r_motor.write(87);
+    }
+    prevMillis = millis();
+    while (millis() - prevMillis <= 100) {
+      if (l_prev_speed >= 90)
+        l_motor.write(90);
+      if (r_prev_speed >= 90)
+        r_motor.write(90);
+    }
+    Serial.println("REAL BACKWARD");
+  }
+
   void move(int speed)
   {
     int actual_speed = speed + 90;
@@ -102,11 +124,11 @@ struct Motors {
     }
     else if (speed > 0) {
       prepare_forward();
-      write_for(actual_speed, 20);
+      write_for(actual_speed, 40);
     }
     else if (speed < 0) {
       prepare_backward();
-      write_for(actual_speed, 20);
+      write_for(actual_speed, 40);
     }
     l_prev_speed = actual_speed;
     r_prev_speed = actual_speed;

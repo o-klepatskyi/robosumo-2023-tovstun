@@ -12,14 +12,11 @@ State next_state = State::Default;
 State prev_state = State::Default;
 StateData state_data{};
 
-
-
 int accelSpeed = 5;
 void setup()
 {
   Serial.begin(9600);
   motors.attach();
-  motors.write_for(90, 2000);
   pinMode(red_button_pin, INPUT);
   Serial.println("Hello world!");
   prev_time = millis();
@@ -68,7 +65,7 @@ void tick_state_machine()
 
 // int speed = 0;
 
-void loop()
+void loop1()
 {
   Serial.print("TS: ");
   Serial.println(state_data.speed);
@@ -101,7 +98,13 @@ void loop()
     state_data.speed = 3;
     // if there is nothing at front or sideways, accel + negative speed
   }
-  else if (forward_left_ultrasonic.read() > 20 && forward_right_ultrasonic.read() > 20) {
+  // else if (left_ultrasonic.read() <= 20 && left_ultrasonic.read() != 0) {
+  //   state = State::RotateLeft;
+  // }
+  // else if (right_ultrasonic.read() <= 20 && right_ultrasonic.read() != 0) {
+  //   state = State::RotateRight;
+  // }
+  else if (forward_left_ultrasonic.read() > 20) {
     state = State::AccelToSpeed;
     state_data.speed = -3;
   }
@@ -125,17 +128,17 @@ void loop()
   //   state_data.speed = 0;
   // }
   //////////////////////////////////DEBUG///////////////////////////////////
-  //UNCOMENT FOR REAL FIGHT
+  // UNCOMENT FOR REAL FIGHT
   if (digitalRead(red_button_pin)) {
     Serial.println("RED BUTTON PRESSED");
     // state = State::RedButtonStopped;
     // prev_state = State::RedButtonStopped;
-   // accelSpeed = -accelSpeed;
+    // accelSpeed = -accelSpeed;
   }
   //////////////////////////////
   // if (prev_state == State::RedButtonStopped)
   //   state = State::RedButtonStopped;
-  // 
+  //
   Serial.print("STATE: ");
   Serial.println(static_cast<int>(state));
   Serial.print("PREV STATE: ");
@@ -166,4 +169,18 @@ void loop()
   Serial.println(motors.get_unite_speed());
 
   delay(500);
+}
+
+void loop()
+{
+  Serial.print("FL: ");
+  Serial.println(forward_left_ultrasonic.read());
+  Serial.print("FR: ");
+  Serial.println(forward_right_ultrasonic.read());
+  Serial.print("L: ");
+  Serial.println(left_ultrasonic.read());
+  Serial.print("R: ");
+  Serial.println(right_ultrasonic.read());
+  Serial.println("---------------------------");
+  delay(1000);
 }
