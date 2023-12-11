@@ -7,8 +7,11 @@
 static State state = State::Default;
 static State next_state = State::Default;
 static State prev_state = State::Default;
-// TODO: check the right value for black surface
-const int black_threshold = 500;
+
+// TODO: review
+static constexpr int DEFAULT_ACCELERATION = 1; // amount of speed we add each loop
+static constexpr int DEFAULT_SPEED = 10;
+static constexpr int DEFAULT_ROTATION_SPEED = 6;
 
 // static unsigned long prev_time = 0;
 // static unsigned long state_duration = 0; // For how long current state lasts
@@ -53,12 +56,12 @@ void on_loop()
 
 static bool moving_forwards() noexcept
 {
-    return (state == State::AccelToSpeed || state == State::DeccelToSpeed || state == State::HoldSpeed) && state_data.speed > 0;
+    return (state == State::AccelToSpeed || state == State::DecelToSpeed || state == State::HoldSpeed) && state_data.speed > 0;
 }
 
 static bool moving_backwards() noexcept
 {
-    return ((state == State::AccelToSpeed || state == State::DeccelToSpeed || state == State::HoldSpeed) && state_data.speed < 0)
+    return ((state == State::AccelToSpeed || state == State::DecelToSpeed || state == State::HoldSpeed) && state_data.speed < 0)
             || state == State::RotateLeftBack || state == State::RotateRightBack;
 }
 
@@ -79,7 +82,7 @@ static State move_from_edge(const SensorsData& sensors)
         }
         else if (stopped())
         {
-            state_data.speed = 10;
+            state_data.speed = DEFAULT_SPEED;
             return State::AccelToSpeed;
         }
 
@@ -97,7 +100,7 @@ static State move_from_edge(const SensorsData& sensors)
         }
         else if (stopped())
         {
-            state_data.speed = 10;
+            state_data.speed = DEFAULT_ROTATION_SPEED;
             return State::RotateLeftBack;
         }
 
@@ -115,7 +118,7 @@ static State move_from_edge(const SensorsData& sensors)
         }
         else if (stopped())
         {
-            state_data.speed = 10;
+            state_data.speed = DEFAULT_ROTATION_SPEED;
             return State::RotateRightBack;
         }
 
@@ -134,7 +137,7 @@ static State move_from_edge(const SensorsData& sensors)
         else if (stopped())
         {
             state = State::AccelToSpeed;
-            state_data.speed = -10;
+            state_data.speed = -DEFAULT_SPEED;
         }
 
         state_data.speed = 0;
@@ -150,7 +153,7 @@ static State move_from_edge(const SensorsData& sensors)
         }
         else if (stopped())
         {
-            state_data.speed = 10;
+            state_data.speed = DEFAULT_ROTATION_SPEED;
             return State::RotateRightStill;
         }
 
@@ -167,7 +170,7 @@ static State move_from_edge(const SensorsData& sensors)
         }
         else if (stopped())
         {
-            state_data.speed = 10;
+            state_data.speed = DEFAULT_ROTATION_SPEED;
             return State::RotateLeftStill;
         }
 
@@ -212,14 +215,14 @@ State state_transition(const SensorsData& sensors)
     // if there is something in the front: accel + positive speed
     if (sensors.front_detects_enemy())
     {
-        state_data.speed = 10;
+        state_data.speed = DEFAULT_SPEED;
         return State::AccelToSpeed;
     }
     
     // if there is nothing at front or sideways, accel + negative speed
     if (sensors.no_enemy_detected())
     {
-        state_data.speed = -10;
+        state_data.speed = -DEFAULT_SPEED;
         return State::AccelToSpeed;
     }
 
@@ -229,7 +232,7 @@ State state_transition(const SensorsData& sensors)
       state_data.speed = 15;
     }
     else {
-      state = State::DeccelToSpeed;
+      state = State::DecelToSpeed;
       // prev_state = state;
       state_data.speed = 0;
     }
@@ -242,24 +245,34 @@ void apply_movement()
     if (state == State::AccelToSpeed)
     {
         if (state_data.speed >= 0 && motors.get_unite_speed() < state_data.speed)
-            motors.move(motors.get_unite_speed() + 3);
+            motors.move(min(state_data.speed, motors.get_unite_speed() + DEFAULT_ACCELERATION));
         else if (state_data.speed <= 0 && motors.get_unite_speed() > state_data.speed)
-            motors.move(motors.get_unite_speed() - 3);
+            motors.move(max(state_data.speed, motors.get_unite_speed() - DEFAULT_ACCELERATION));
     }
-    else if (state == State::DeccelToSpeed)
+    else if (state == State::DecelToSpeed)
     {
         if (state_data.speed >= 0 && motors.get_unite_speed() > state_data.speed)
-            motors.move(max(0, motors.get_unite_speed() - 3));
+            motors.move(max(state_data.speed, motors.get_unite_speed() - DEFAULT_ACCELERATION));
         else if (state_data.speed <= 0 && motors.get_unite_speed() < state_data.speed)
-            motors.move(min(0, motors.get_unite_speed() + 3));
+            motors.move(min(state_data.speed, motors.get_unite_speed() + DEFAULT_ACCELERATION));
     }
     else if (state == State::RotateLeftStill)
     {
-        motors.rotate_left_still(10);
+        motors.rotate_left_still(state_data.speed);
     }
     else if (state == State::RotateRightStill)
     {
-        motors.rotate_right_still(10);
+        motors.rotate_right_still(state_data.speed);
+    }
+    else if (state == State::RotateLeftBack)
+    {
+        // TODO: we do not check if left motor is stopped
+        motors.rotate_left(state_data.speed);
+    }
+    else if (state == State::RotateRightBack)
+    {
+        // TODO: we do not check if right motor is stopped
+        motors.rotate_right(state_data.speed);
     }
     else if (state == State::Stop || state == State::RedButtonStopped)
     {
