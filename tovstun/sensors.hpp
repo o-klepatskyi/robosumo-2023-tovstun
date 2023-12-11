@@ -28,7 +28,8 @@ const int backward_illumination_pin = A2;
 const int red_button_pin = 13;
 
 struct Illumination_sensor {
-  int threshold = 50;
+  // TODO: recheck this value
+  static constexpr int BLACK_THRESHOLD = 800;
   int pin;
 
   Illumination_sensor(int pin)
@@ -40,7 +41,7 @@ struct Illumination_sensor {
    * Is there an obstacle?
    */
   bool collides() {
-    return read() >= threshold;
+    return read() >= BLACK_THRESHOLD;
   }
 
   int read() {
