@@ -26,12 +26,14 @@ extern Flag flag;
 
 struct Motors {
   static constexpr unsigned long prepare_write_duration = 100;
+
   void attach()
   {
     l_motor.attach(left_motor_pin);
     r_motor.attach(right_motor_pin);
-    write_for(90, 2000);
+    write_for(90, 2000); // TODO: do we account for this when we start up the robot (first 5 sec wait)
   }
+
   void prepare_forward()
   {
     if (l_prev_speed >= 90 && r_prev_speed >= 90)
@@ -44,6 +46,7 @@ struct Motors {
         r_motor.write(90);
     }
   }
+
   // я навіть не буду намагатися писати коментарі англійською
   // в цьому коді правди нема, а баги є
   // воно таке страшне тільки тому, щоб перемикати назад не за 12с, а за 6(а то і менше)
@@ -84,6 +87,7 @@ struct Motors {
     l_prev_speed = actual_speed;
     r_prev_speed = actual_speed;
   }
+
   void prepare_left_forward_right_backward()
   {
     if (l_prev_speed >= 90 && r_prev_speed < 90)
@@ -99,6 +103,7 @@ struct Motors {
         r_motor.write(90);
     }
   }
+
   void prepare_left_backward_right_forward()
   {
     if (r_prev_speed >= 90 && l_prev_speed < 90)
@@ -114,6 +119,8 @@ struct Motors {
         l_motor.write(90);
     }
   }
+
+  // TODO: do we need to stop the other motor here???
   void prepare_left()
   {
     if (r_prev_speed >= 90)
@@ -124,6 +131,7 @@ struct Motors {
         r_motor.write(90);
     }
   }
+
   void prepare_right()
   {
     if (l_prev_speed >= 90)
@@ -134,6 +142,7 @@ struct Motors {
         l_motor.write(90);
     }
   }
+
   void write_for(int speed, unsigned long miliseconds)
   {
     unsigned long prevMillis = millis();
@@ -142,6 +151,7 @@ struct Motors {
       r_motor.write(speed);
     }
   }
+
   void write_for_l(int speed, unsigned long miliseconds)
   {
     unsigned long prevMillis = millis();
@@ -149,6 +159,7 @@ struct Motors {
       l_motor.write(speed);
     }
   }
+
   void write_for_r(int speed, unsigned long miliseconds)
   {
     unsigned long prevMillis = millis();
@@ -156,11 +167,13 @@ struct Motors {
       r_motor.write(speed);
     }
   }
+
   void rotate_left(int speed)
   {
     prepare_left();
     write_for_r(speed, 50);
   }
+
   void rotate_right(int speed)
   {
     prepare_right();
@@ -198,6 +211,7 @@ struct Motors {
   {
     move(0);
   }
+
   // ASSUME: speed for motors is equal
   int get_unite_speed() { return l_prev_speed - 90; }
   int l_prev_speed = 90, r_prev_speed = 90;

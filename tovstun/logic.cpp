@@ -7,8 +7,11 @@
 static State state = State::Default;
 static State next_state = State::Default;
 static State prev_state = State::Default;
-// TODO: check the right value for black surface
-const int black_threshold = 500;
+
+// TODO: review this constants
+static constexpr int DEFAULT_ACCELERATION = 1; // amount of speed we add each loop
+static constexpr int DEFAULT_SPEED = 10;
+static constexpr int DEFAULT_ROTATION_SPEED = 6;
 
 // static unsigned long prev_time = 0;
 // static unsigned long state_duration = 0; // For how long current state lasts
@@ -53,12 +56,12 @@ void on_loop()
 
 static bool moving_forwards() noexcept
 {
-    return (state == State::AccelToSpeed || state == State::DeccelToSpeed || state == State::HoldSpeed) && state_data.speed > 0;
+    return (state == State::AccelToSpeed || state == State::DecelToSpeed || state == State::HoldSpeed) && state_data.speed > 0;
 }
 
 static bool moving_backwards() noexcept
 {
-    return ((state == State::AccelToSpeed || state == State::DeccelToSpeed || state == State::HoldSpeed) && state_data.speed < 0)
+    return ((state == State::AccelToSpeed || state == State::DecelToSpeed || state == State::HoldSpeed) && state_data.speed < 0)
             || state == State::RotateLeftBack || state == State::RotateRightBack;
 }
 
@@ -67,12 +70,127 @@ static bool stopped() noexcept
     return state == State::Stop && motors.get_unite_speed() == 0;
 }
 
+// defines state transitions if we detect edge line
+// TODO: we need to improve the way robot moves away from the edge
+static State move_from_edge(const SensorsData& sensors)
+{
+    // if we only detect line behind, stop and accelerate forward
+    if (sensors.is_back_obstacle && !sensors.is_fl_obstacle && !sensors.is_fr_obstacle)
+    {
+        if (moving_forwards())
+        {
+            return state; // OK, continue moving into center
+        }
+        else if (stopped())
+        {
+            state_data.speed = DEFAULT_SPEED;
+            return State::AccelToSpeed;
+        }
+
+        state_data.speed = 0;
+        return State::Stop;
+    }
+
+    // If we only detect line by the left sensor, move left back
+    // this way we will face the center
+    if (!sensors.is_back_obstacle && sensors.is_fl_obstacle && !sensors.is_fr_obstacle)
+    {
+        if (state == State::RotateLeftBack) // or rotate right still
+        {
+            return state; // OK, continue rotating until we do not see the edge
+        }
+        else if (stopped())
+        {
+            state_data.speed = DEFAULT_ROTATION_SPEED;
+            return State::RotateLeftBack;
+        }
+
+        state_data.speed = 0;
+        return State::Stop;
+    }
+
+    // If we only detect line by the right sensor, move right back
+    // this way we will face the center
+    if (!sensors.is_back_obstacle && !sensors.is_fl_obstacle && sensors.is_fr_obstacle)
+    {
+        if (state == State::RotateRightBack) // or rotate left still
+        {
+            return state; // OK, continue rotating until we do not see the edge
+        }
+        else if (stopped())
+        {
+            state_data.speed = DEFAULT_ROTATION_SPEED;
+            return State::RotateRightBack;
+        }
+
+        state_data.speed = 0;
+        return State::Stop;
+    }
+
+    // If we detect line by both front sensors, stop and start moving backwards
+    // TODO: we need to make sure we won't start moving forward after that (maybe move back and rotate?)
+    if (!sensors.is_back_obstacle && sensors.is_fl_obstacle && sensors.is_fr_obstacle)
+    {
+        if (moving_backwards())
+        {
+            return state; // OK, continue moving back into center
+        }
+        else if (stopped())
+        {
+            state = State::AccelToSpeed;
+            state_data.speed = -DEFAULT_SPEED;
+        }
+
+        state_data.speed = 0;
+        return State::Stop;
+    }
+
+    // If we detect line by both back and left sensors, rotate right until only back sensor detects line
+    if (sensors.is_back_obstacle && sensors.is_fl_obstacle && !sensors.is_fr_obstacle)
+    {
+        if (state == State::RotateRightStill) // or just move forward
+        {
+            return state;
+        }
+        else if (stopped())
+        {
+            state_data.speed = DEFAULT_ROTATION_SPEED;
+            return State::RotateRightStill;
+        }
+
+        state_data.speed = 0;
+        return State::Stop;
+    }
+
+    // If we detect line by both back and right sensors, rotate left until only back sensor detects line
+    if (sensors.is_back_obstacle && !sensors.is_fl_obstacle && sensors.is_fr_obstacle)
+    {
+        if (state == State::RotateLeftStill) // or just move forward
+        {
+            return state;
+        }
+        else if (stopped())
+        {
+            state_data.speed = DEFAULT_ROTATION_SPEED;
+            return State::RotateLeftStill;
+        }
+
+        state_data.speed = 0;
+        return State::Stop;
+    }
+
+    // if we are here, either we detect nothing or detect line by all sensors
+    // we will stop just in case
+    state_data.speed = 0;
+    return State::Stop;
+}
+
 // We do not assign state value directly
 // We return the next state value
 State state_transition(const SensorsData& sensors)
 {
     // this is terminal state
-    if (prev_state == State::RedButtonStopped)
+    if (state == State::RedButtonStopped)
     {
         return State::RedButtonStopped;
     }
@@ -84,88 +202,9 @@ State state_transition(const SensorsData& sensors)
         return State::RedButtonStopped;
     }
 
-    // if we only detect line behind, stop and accelerate forward
-    if (sensors.is_back_obstacle && !sensors.is_fl_obstacle && !sensors.is_fr_obstacle)
-    {
-        if (moving_forwards())
-        {
-            return state; // OK, continue moving into center
-        }
-        else if (stopped())
-        {
-            state_data.speed = 10;
-            return State::AccelToSpeed;
-        }
-
-        state_data.speed = 0;
-        return State::Stop;
-    }
-    // If we only detect line by the left sensor, rotate right
-    else if (!sensors.is_back_obstacle && sensors.is_fl_obstacle && !sensors.is_fr_obstacle)
-    {
-        state = State::RotateRightStill;
-        return;
-    }
-    // If we only detect line by the right sensor, rotate left
-    else if (!sensors.is_back_obstacle && !sensors.is_fl_obstacle && sensors.is_fr_obstacle)
-    {
-        state = State::RotateLeftStill;
-        return;
-    }
-    // If we detect line by both front sensors, stop and start moving backwards
-    else if (!sensors.is_back_obstacle && sensors.is_fl_obstacle && sensors.is_fr_obstacle) 
-    {
-        if (moving_forwards())
-        {
-            state == State::Stop;
-            state_data.speed = 0;
-        }
-        else if (stopped())
-        {
-            state == State::DeccelToSpeed;
-            state_data.speed = 10;
-        }
-
-        return;
-    }
-    // If we only detect line by both back and left sensors, rotate right and move forward
-    else if (sensors.is_back_obstacle && sensors.is_fl_obstacle && !sensors.is_fr_obstacle) 
-    {
-        if (moving_forwards())
-        {
-            state == State::Stop;
-            state_data.speed = 0;
-        }
-        else if (stopped())
-        {
-            state == State::RotateRightStill;
-        }
-        else if (state == State::RotateRightStill) {
-            state == State::AccelToSpeed;
-            state_data.speed = 10;
-        }
-
-        return;
-    }
-    // If we only detect line by both back and right sensors, rotate left and move forward
-    else if (sensors.is_back_obstacle && !sensors.is_fl_obstacle && sensors.is_fr_obstacle) 
-    {
-        if (moving_forwards())
-        {
-            state == State::Stop;
-            state_data.speed = 0;
-        }
-        else if (stopped())
-        {
-            state == State::RotateLeftStill;
-        }
-        else if (state == State::RotateLeftStill) {
-            state == State::AccelToSpeed;
-            state_data.speed = 10;
-        }
-
-        return;
-    }
+    // Firstly check the edge
+    if (sensors.edge_detected())
+        return move_from_edge(sensors);
 
     if (state == State::Default)
     {
@@ -174,16 +213,18 @@ State state_transition(const SensorsData& sensors)
     }
 
     // if there is something in the front: accel + positive speed
+    // TODO: maybe we need to align ourselves with the enemy so both sensors see him???
     if (sensors.front_detects_enemy())
     {
-        state_data.speed = 10;
+        state_data.speed = DEFAULT_SPEED;
         return State::AccelToSpeed;
     }
     
     // if there is nothing at front or sideways, accel + negative speed
+    // TODO: incorrect behaviour, enemy must be behind us
     if (sensors.no_enemy_detected())
     {
-        state_data.speed = -10;
+        state_data.speed = -DEFAULT_SPEED;
         return State::AccelToSpeed;
     }
 
@@ -193,11 +234,12 @@ State state_transition(const SensorsData& sensors)
       state_data.speed = 15;
     }
     else {
-      state = State::DeccelToSpeed;
+      state = State::DecelToSpeed;
       // prev_state = state;
       state_data.speed = 0;
     }
 #endif
+    return state; // by default the same state is remained
 }
 
 void apply_movement()
@@ -205,24 +247,34 @@ void apply_movement()
     if (state == State::AccelToSpeed)
     {
         if (state_data.speed >= 0 && motors.get_unite_speed() < state_data.speed)
-            motors.move(motors.get_unite_speed() + 3);
+            motors.move(min(state_data.speed, motors.get_unite_speed() + DEFAULT_ACCELERATION));
         else if (state_data.speed <= 0 && motors.get_unite_speed() > state_data.speed)
-            motors.move(motors.get_unite_speed() - 3);
+            motors.move(max(state_data.speed, motors.get_unite_speed() - DEFAULT_ACCELERATION));
     }
-    else if (state == State::DeccelToSpeed)
+    else if (state == State::DecelToSpeed)
     {
         if (state_data.speed >= 0 && motors.get_unite_speed() > state_data.speed)
-            motors.move(max(0, motors.get_unite_speed() - 3));
+            motors.move(max(state_data.speed, motors.get_unite_speed() - DEFAULT_ACCELERATION));
         else if (state_data.speed <= 0 && motors.get_unite_speed() < state_data.speed)
-            motors.move(min(0, motors.get_unite_speed() + 3));
+            motors.move(min(state_data.speed, motors.get_unite_speed() + DEFAULT_ACCELERATION));
     }
     else if (state == State::RotateLeftStill)
     {
-        motors.rotate_left_still(10);
+        motors.rotate_left_still(state_data.speed);
     }
     else if (state == State::RotateRightStill)
     {
-        motors.rotate_right_still(10);
+        motors.rotate_right_still(state_data.speed);
+    }
+    else if (state == State::RotateLeftBack)
+    {
+        // TODO: we do not check if left motor is stopped
+        motors.rotate_left(state_data.speed);
+    }
+    else if (state == State::RotateRightBack)
+    {
+        // TODO: we do not check if right motor is stopped
+        motors.rotate_right(state_data.speed);
     }
     else if (state == State::Stop || state == State::RedButtonStopped)
     {

@@ -28,7 +28,8 @@ const int backward_illumination_pin = A2;
 const int red_button_pin = 13;
 
 struct Illumination_sensor {
-  int threshold = 50;
+  // TODO: recheck this value
+  static constexpr int BLACK_THRESHOLD = 800;
   int pin;
 
   Illumination_sensor(int pin)
@@ -40,7 +41,7 @@ struct Illumination_sensor {
    * Is there an obstacle?
    */
   bool collides() {
-    return read() >= threshold;
+    return read() >= BLACK_THRESHOLD;
   }
 
   int read() {
@@ -56,9 +57,9 @@ static constexpr int FRONT_DETECTION_THRESHOLD = 20;
 static constexpr int SIDE_DETECTION_THRESHOLD = 20;
 
 struct SensorsData {
-  bool is_fl_obstacle; // detected line on front left
-  bool is_fr_obstacle; // detected line on front right
-  bool is_back_obstacle;
+  bool is_fl_obstacle; // detected line on front left sensor
+  bool is_fr_obstacle; // detected line on front right sensor
+  bool is_back_obstacle; // detected line on back sensor
 
   int fl_us_value; // front left ultrasonic value
   int fr_us_value; // front right ultrasonic value
@@ -89,12 +90,12 @@ struct SensorsData {
 
   bool left_detects_enemy() const noexcept
   {
-    return fl_us_value <= SIDE_DETECTION_THRESHOLD && l_us_value != 0;
+    return l_us_value <= SIDE_DETECTION_THRESHOLD && l_us_value != 0;
   }
 
   bool right_detects_enemy() const noexcept
   {
-    return fl_us_value <= SIDE_DETECTION_THRESHOLD && r_us_value != 0;
+    return r_us_value <= SIDE_DETECTION_THRESHOLD && r_us_value != 0;
   }
 
   bool front_detects_enemy() const noexcept
@@ -107,4 +108,8 @@ struct SensorsData {
     return !front_detects_enemy() && !left_detects_enemy() && !right_detects_enemy();
   }
 
+  bool edge_detected() const noexcept
+  {
+    return is_fl_obstacle || is_fr_obstacle || is_back_obstacle;
+  }
 };
