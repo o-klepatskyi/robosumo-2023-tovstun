@@ -89,12 +89,12 @@ struct SensorsData {
 
   bool left_detects_enemy() const noexcept
   {
-    return fl_us_value <= SIDE_DETECTION_THRESHOLD && f_us_value != 0;
+    return l_us_value <= SIDE_DETECTION_THRESHOLD && l_us_value != 0;
   }
 
   bool right_detects_enemy() const noexcept
   {
-    return fl_us_value <= SIDE_DETECTION_THRESHOLD && r_us_value != 0;
+    return r_us_value <= SIDE_DETECTION_THRESHOLD && r_us_value != 0;
   }
 
   bool front_detects_enemy() const noexcept
@@ -107,4 +107,8 @@ struct SensorsData {
     return !front_detects_enemy() && !left_detects_enemy() && !right_detects_enemy();
   }
 
+  bool edge_detected() const noexcept
+  {
+    return is_fl_obstacle || is_fr_obstacle || is_back_obstacle;
+  }
 };
