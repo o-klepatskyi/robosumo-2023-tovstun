@@ -7,9 +7,9 @@
 
 
 void debug_display_print_illumination() {
-  const int forward_left = forward_left_illumination_sensor.read();
-  const int forward_right = forward_right_illumination_sensor.read();
-  const int backward_left = backward_left_illumination_sensor.read();
+  const int forward_left = front_left_illumination_sensor.read();
+  const int forward_right = front_right_illumination_sensor.read();
+  const int backward_left = back_illumination_sensor.read();
 
   const int row_count = 2;
   const int col_length = 16 + 1;

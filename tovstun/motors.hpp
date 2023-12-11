@@ -193,6 +193,11 @@ struct Motors {
       r_motor.write(right_speed);
     }
   }
+
+  void stop()
+  {
+    move(0);
+  }
   // ASSUME: speed for motors is equal
   int get_unite_speed() { return l_prev_speed - 90; }
   int l_prev_speed = 90, r_prev_speed = 90;

@@ -6,11 +6,11 @@
 // ultrasonic sensors
 const int forward_left_ultrasonic_trig_pin = 4;
 const int forward_left_ultrasonic_echo_pin = 5;
-extern Ultrasonic forward_left_ultrasonic;
+extern Ultrasonic front_left_ultrasonic;
 
 const int forward_right_ultrasonic_trig_pin = 3;
 const int forward_right_ultrasonic_echo_pin = 2;
-extern Ultrasonic forward_right_ultrasonic;
+extern Ultrasonic front_right_ultrasonic;
 
 const int left_ultrasonic_trig_pin = 8;
 const int left_ultrasonic_echo_pin = 11;
@@ -48,28 +48,30 @@ struct Illumination_sensor {
   }
 };
 
-extern Illumination_sensor forward_left_illumination_sensor;
-extern Illumination_sensor forward_right_illumination_sensor;
-extern Illumination_sensor backward_left_illumination_sensor;
+extern Illumination_sensor front_left_illumination_sensor;
+extern Illumination_sensor front_right_illumination_sensor;
+extern Illumination_sensor back_illumination_sensor;
 
 struct SensorsData {
-  bool is_forward_left_obstacle;
-  bool is_forward_right_obstacle;
-  bool is_backward_left_obstacle;
+  bool is_fl_obstacle; // detected line on front left
+  bool is_fr_obstacle; // detected line on front right
+  bool is_back_obstacle;
 
-  int forward_left_ultrasonic_value;
-  int forward_right_ultrasonic_value;
-  int left_ultrasonic_value;
-  int right_ultrasonic_value;
+  int fl_us_value; // front left ultrasonic value
+  int fr_us_value; // front right ultrasonic value
+  int l_us_value; // left ultrasonic value
+  int r_us_value; // right ultrasonic value
 
   static SensorsData read() {
     return SensorsData {
-      forward_left_illumination_sensor.collides(),
-      forward_right_illumination_sensor.collides(),
-      forward_left_ultrasonic.read(),
-      forward_right_ultrasonic.read(),
+      front_left_illumination_sensor.collides(),
+      front_right_illumination_sensor.collides(),
+      back_illumination_sensor.collides(),
+      front_left_ultrasonic.read(),
+      front_right_ultrasonic.read(),
       left_ultrasonic.read(),
       right_ultrasonic.read()
     };
   }
+
 };

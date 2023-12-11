@@ -1,7 +1,7 @@
 #include "logic.hpp"
+#include "motors.hpp"
 #include "sensors.hpp"
 #include "state.hpp"
-#include "motors.hpp"
 #include <Arduino.h> // Serial.println
 
 static State state = State::Default;
@@ -37,7 +37,7 @@ void on_loop()
     apply_movement();
 
     // if (state == next_state)
-        // return;
+    // return;
 
     // state = next_state;
     // state_duration = 0;
@@ -47,61 +47,74 @@ void on_loop()
     // apply_movement();
 }
 
+static bool moving_forwards() noexcept
+{
+    return (state == State::AccelToSpeed || state == State::DeccelToSpeed || state == State::HoldSpeed) && state_data.speed > 0;
+}
+
+static bool moving_backwards() noexcept
+{
+    return (state == State::AccelToSpeed || state == State::DeccelToSpeed || state == State::HoldSpeed) && state_data.speed < 0;
+}
+
+static bool stopped() noexcept
+{
+    return state == State::Stop && motors.get_unite_speed() == 0;
+}
+
 void state_transition(const SensorsData& sensors)
 {
+    // this is terminal state
+    if (prev_state == State::RedButtonStopped)
+    {
+        state = State::RedButtonStopped;
+        return;
+    }
+
+    // TODO: make a class for red button
+    if (digitalRead(red_button_pin))
+    {
+        Serial.println("RED BUTTON PRESSED");
+        state = State::RedButtonStopped;
+        state_data = {};
+        return;
+    }
+
+    // if we only detect line behind, stop and accelerate forward
+    if (sensors.is_back_obstacle && !sensors.is_fl_obstacle && !sensors.is_fl_obstacle)
+    {
+        if (moving_backwards())
+        {
+            state == State::Stop;
+            state_data.speed = 0;
+        }
+        else if (stopped())
+        {
+            state == State::AccelToSpeed;
+            state_data.speed = 10;
+        }
+
+        return;
+    }
+
+    // TODO: only left sensor, only right sensor, both front sensors, left and back, right and back
+
     // if there is something in the front: accel + positive speed
-    if ((forward_left_ultrasonic.read() <= 20 && forward_left_ultrasonic.read() != 0) ||
-        (forward_right_ultrasonic.read() <= 20 && forward_right_ultrasonic.read() != 0))
+    if ((front_left_ultrasonic.read() <= 20 && front_left_ultrasonic.read() != 0) ||
+        (front_right_ultrasonic.read() <= 20 && front_right_ultrasonic.read() != 0))
     {
         state = State::AccelToSpeed;
         state_data.speed = 10;
         // if there is nothing at front or sideways, accel + negative speed
     }
-    else if (forward_left_ultrasonic.read() > 20 && forward_right_ultrasonic.read() > 20)
+    else if (front_left_ultrasonic.read() > 20 && front_right_ultrasonic.read() > 20)
     {
         state = State::AccelToSpeed;
         state_data.speed = -10;
     }
 
-    int illuminationValueForwardLeft = analogRead(Sensors.forward_left_illumination_pin);
-    int illuminationValueForwardRight = analogRead(Sensors.forward_right_illumination_pin);
-    int illuminationValueBackward = analogRead(Sensors.backward_illumination_pin);
-
-    if (illuminationValueForwardLeft < black_threshold) {
-        motors.move(0);
-        state = State::RotateStillRight;
-    }
-    else if (illuminationValueForwardRight < black_threshold) {
-        motors.move(0);
-        state = State::RotateStillLeft;
-    }
-    else if (illuminationValueBackward < black_threshold) {
-        state = State::AccelToSpeed;
-        state_data.speed = 10;
-    }
-
-    // THAT MUST BE BEFORE LAST IF: stop if we see white line
-    if (state_data.speed > 0 && forward_right_illumination_sensor.collides() ||
-        forward_left_illumination_sensor.collides())
-    {
-        state = State::Stop;
-    }
-    if (state_data.speed < 0 && backward_left_illumination_sensor.collides())
-    {
-        state = State::Stop;
-    }
-    // CHANGE IT: && false is for debug *ONLY*
-    if (digitalRead(red_button_pin))
-    {
-        Serial.println("RED BUTTON PRESSED");
-        state = State::RedButtonStopped;
-        prev_state = State::RedButtonStopped;
-    }
-    if (prev_state == State::RedButtonStopped)
-        state = State::RedButtonStopped;
-
 #if 0 // for debugging
-    if (forward_left_ultrasonic.read() < 20) {
+    if (front_left_ultrasonic.read() < 20) {
       state = State::AccelToSpeed;
       state_data.speed = 15;
     }
@@ -133,19 +146,19 @@ void apply_movement()
         else if (state_data.speed <= 0 && motors.get_unite_speed() < state_data.speed)
             motors.move(min(0, motors.get_unite_speed() + 3));
     }
-    else if (state == State:RotateStillLeft) 
+    else if (state == State::RotateLeftStill)
     {
         Serial.println("ROTATING STILL LEFT");
         motors.rotate_left_still(10);
     }
-    else if (state == State::RotateStillRight) 
+    else if (state == State::RotateRightStill)
     {
         Serial.println("ROTATING STILL RIGHT");
         motors.rotate_right_still(10);
     }
     else if (state == State::Stop || state == State::RedButtonStopped)
     {
-        motors.move(0);
+        motors.stop();
     }
 }
 
@@ -157,7 +170,7 @@ void debug_print()
     Serial.println(motors.get_unite_speed());
     Serial.println("---------------------------");
     Serial.print("FL: ");
-    Serial.println(forward_left_ultrasonic.read());
+    Serial.println(front_left_ultrasonic.read());
     Serial.print("STATE: ");
     Serial.println(static_cast<int>(state));
     Serial.print("PREV STATE: ");
