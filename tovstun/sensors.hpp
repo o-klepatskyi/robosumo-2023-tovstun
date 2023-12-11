@@ -52,6 +52,9 @@ extern Illumination_sensor front_left_illumination_sensor;
 extern Illumination_sensor front_right_illumination_sensor;
 extern Illumination_sensor back_illumination_sensor;
 
+static constexpr int FRONT_DETECTION_THRESHOLD = 20;
+static constexpr int SIDE_DETECTION_THRESHOLD = 20;
+
 struct SensorsData {
   bool is_fl_obstacle; // detected line on front left
   bool is_fr_obstacle; // detected line on front right
@@ -72,6 +75,36 @@ struct SensorsData {
       left_ultrasonic.read(),
       right_ultrasonic.read()
     };
+  }
+
+  bool fl_detects_enemy() const noexcept
+  {
+    return fl_us_value <= FRONT_DETECTION_THRESHOLD && fl_us_value != 0;
+  }
+
+  bool fr_detects_enemy() const noexcept
+  {
+    return fr_us_value <= FRONT_DETECTION_THRESHOLD && fr_us_value != 0;
+  }
+
+  bool left_detects_enemy() const noexcept
+  {
+    return fl_us_value <= SIDE_DETECTION_THRESHOLD && f_us_value != 0;
+  }
+
+  bool right_detects_enemy() const noexcept
+  {
+    return fl_us_value <= SIDE_DETECTION_THRESHOLD && r_us_value != 0;
+  }
+
+  bool front_detects_enemy() const noexcept
+  {
+    return fl_detects_enemy() || fr_detects_enemy();
+  }
+
+  bool no_enemy_detected() const noexcept
+  {
+    return !front_detects_enemy() && !left_detects_enemy() && !right_detects_enemy();
   }
 
 };

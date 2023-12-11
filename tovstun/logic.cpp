@@ -103,15 +103,22 @@ State state_transition(const SensorsData& sensors)
 
     // TODO: only left sensor, only right sensor, both front sensors, left and back, right and back
 
+    if (state == State::Default)
+    {
+        // TODO: this is the start of the round
+        // Ideally we need to detect what starting position we are in and change state accordingly
+        return state;
+    }
+
     // if there is something in the front: accel + positive speed
-    if ((front_left_ultrasonic.read() <= 20 && front_left_ultrasonic.read() != 0) ||
-        (front_right_ultrasonic.read() <= 20 && front_right_ultrasonic.read() != 0))
+    if (sensors.front_detects_enemy())
     {
         state_data.speed = 10;
         return State::AccelToSpeed;
-        // if there is nothing at front or sideways, accel + negative speed
     }
-    else if (front_left_ultrasonic.read() > 20 && front_right_ultrasonic.read() > 20)
+    
+    // if there is nothing at front or sideways, accel + negative speed
+    if (sensors.no_enemy_detected())
     {
         state_data.speed = -10;
         return State::AccelToSpeed;
