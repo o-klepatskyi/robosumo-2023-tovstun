@@ -84,7 +84,7 @@ void state_transition(const SensorsData& sensors)
     }
 
     // if we only detect line behind, stop and accelerate forward
-    if (sensors.is_back_obstacle && !sensors.is_fl_obstacle && !sensors.is_fl_obstacle)
+    if (sensors.is_back_obstacle && !sensors.is_fl_obstacle && !sensors.is_fr_obstacle)
     {
         if (moving_backwards())
         {
@@ -99,8 +99,72 @@ void state_transition(const SensorsData& sensors)
 
         return;
     }
+    // If we only detect line by the left sensor, rotate right
+    else if (!sensors.is_back_obstacle && sensors.is_fl_obstacle && !sensors.is_fr_obstacle)
+    {
+        state = State::RotateRightStill;
+        return;
+    }
+    // If we only detect line by the right sensor, rotate left
+    else if (!sensors.is_back_obstacle && !sensors.is_fl_obstacle && sensors.is_fr_obstacle)
+    {
+        state = State::RotateLeftStill;
+        return;
+    }
+    // If we detect line by both front sensors, stop and start moving backwards
+    else if (!sensors.is_back_obstacle && sensors.is_fl_obstacle && sensors.is_fr_obstacle) 
+    {
+        if (moving_forwards())
+        {
+            state == State::Stop;
+            state_data.speed = 0;
+        }
+        else if (stopped())
+        {
+            state == State::DeccelToSpeed;
+            state_data.speed = 10;
+        }
 
-    // TODO: only left sensor, only right sensor, both front sensors, left and back, right and back
+        return;
+    }
+    // If we only detect line by both back and left sensors, rotate right and move forward
+    else if (sensors.is_back_obstacle && sensors.is_fl_obstacle && !sensors.is_fr_obstacle) 
+    {
+        if (moving_forwards())
+        {
+            state == State::Stop;
+            state_data.speed = 0;
+        }
+        else if (stopped())
+        {
+            state == State::RotateRightStill;
+        }
+        else if (state == State::RotateRightStill) {
+            state == State::AccelToSpeed;
+            state_data.speed = 10;
+        }
+
+        return;
+    }
+    // If we only detect line by both back and right sensors, rotate left and move forward
+    else if (sensors.is_back_obstacle && !sensors.is_fl_obstacle && sensors.is_fr_obstacle) 
+    {
+        if (moving_forwards())
+        {
+            state == State::Stop;
+            state_data.speed = 0;
+        }
+        else if (stopped())
+        {
+            state == State::RotateLeftStill;
+        }
+        else if (state == State::RotateLeftStill) {
+            state == State::AccelToSpeed;
+            state_data.speed = 10;
+        }
+
+        return;
+    }
 
     // if there is something in the front: accel + positive speed
     if ((front_left_ultrasonic.read() <= 20 && front_left_ultrasonic.read() != 0) ||
