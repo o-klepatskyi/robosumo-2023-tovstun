@@ -34,6 +34,10 @@ void on_loop()
     const SensorsData sensors = SensorsData::read();
 
     state_transition(sensors);
+
+    Serial.print("STATE: ");
+    Serial.println(state_to_string(state));
+
     apply_movement();
 
     // if (state == next_state)
@@ -74,7 +78,6 @@ void state_transition(const SensorsData& sensors)
     // TODO: make a class for red button
     if (digitalRead(red_button_pin))
     {
-        Serial.println("RED BUTTON PRESSED");
         state = State::RedButtonStopped;
         state_data = {};
         return;
@@ -130,8 +133,6 @@ void apply_movement()
 {
     if (state == State::AccelToSpeed)
     {
-        Serial.println("ACCEL");
-
         if (state_data.speed >= 0 && motors.get_unite_speed() < state_data.speed)
             motors.move(motors.get_unite_speed() + 3);
         else if (state_data.speed <= 0 && motors.get_unite_speed() > state_data.speed)
@@ -139,8 +140,6 @@ void apply_movement()
     }
     else if (state == State::DeccelToSpeed)
     {
-        Serial.println("DECCEL");
-
         if (state_data.speed >= 0 && motors.get_unite_speed() > state_data.speed)
             motors.move(max(0, motors.get_unite_speed() - 3));
         else if (state_data.speed <= 0 && motors.get_unite_speed() < state_data.speed)
@@ -148,12 +147,10 @@ void apply_movement()
     }
     else if (state == State::RotateLeftStill)
     {
-        Serial.println("ROTATING STILL LEFT");
         motors.rotate_left_still(10);
     }
     else if (state == State::RotateRightStill)
     {
-        Serial.println("ROTATING STILL RIGHT");
         motors.rotate_right_still(10);
     }
     else if (state == State::Stop || state == State::RedButtonStopped)
