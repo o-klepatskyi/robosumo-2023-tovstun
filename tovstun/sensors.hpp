@@ -89,7 +89,7 @@ struct SensorsData {
 
   bool left_detects_enemy() const noexcept
   {
-    return fl_us_value <= SIDE_DETECTION_THRESHOLD && f_us_value != 0;
+    return fl_us_value <= SIDE_DETECTION_THRESHOLD && l_us_value != 0;
   }
 
   bool right_detects_enemy() const noexcept

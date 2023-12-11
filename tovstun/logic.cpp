@@ -169,8 +169,7 @@ State state_transition(const SensorsData& sensors)
 
     if (state == State::Default)
     {
-        // TODO: this is the start of the round
-        // Ideally we need to detect what starting position we are in and change state accordingly
+        
         return state;
     }
 
