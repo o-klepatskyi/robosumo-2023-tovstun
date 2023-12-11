@@ -8,7 +8,7 @@ static State state = State::Default;
 static State next_state = State::Default;
 static State prev_state = State::Default;
 
-// TODO: review
+// TODO: review this constants
 static constexpr int DEFAULT_ACCELERATION = 1; // amount of speed we add each loop
 static constexpr int DEFAULT_SPEED = 10;
 static constexpr int DEFAULT_ROTATION_SPEED = 6;
@@ -71,6 +71,7 @@ static bool stopped() noexcept
 }
 
 // defines state transitions if we detect edge line
+// TODO: we need to improve the way robot moves away from the edge
 static State move_from_edge(const SensorsData& sensors)
 {
     // if we only detect line behind, stop and accelerate forward
@@ -213,6 +214,7 @@ State state_transition(const SensorsData& sensors)
     }
 
     // if there is something in the front: accel + positive speed
+    // TODO: maybe we need to align ourselves with the enemy so both sensors see him???
     if (sensors.front_detects_enemy())
     {
         state_data.speed = DEFAULT_SPEED;
@@ -220,6 +222,7 @@ State state_transition(const SensorsData& sensors)
     }
     
     // if there is nothing at front or sideways, accel + negative speed
+    // TODO: incorrect behaviour, enemy must be behind us
     if (sensors.no_enemy_detected())
     {
         state_data.speed = -DEFAULT_SPEED;
