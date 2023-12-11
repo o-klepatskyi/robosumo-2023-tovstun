@@ -16,7 +16,7 @@ const int black_threshold = 500;
 static StateData state_data{};
 
 // decide what state in next depending on the sensors values
-void state_transition(const SensorsData& sensors);
+State state_transition(const SensorsData& sensors);
 
 // apply current movement state, i.e. send signals to motors
 void apply_movement();
@@ -33,7 +33,7 @@ void on_loop()
     prev_state = state;
     const SensorsData sensors = SensorsData::read();
 
-    state_transition(sensors);
+    state = state_transition(sensors);
 
     Serial.print("STATE: ");
     Serial.println(state_to_string(state));
@@ -58,7 +58,8 @@ static bool moving_forwards() noexcept
 
 static bool moving_backwards() noexcept
 {
-    return (state == State::AccelToSpeed || state == State::DeccelToSpeed || state == State::HoldSpeed) && state_data.speed < 0;
+    return ((state == State::AccelToSpeed || state == State::DeccelToSpeed || state == State::HoldSpeed) && state_data.speed < 0)
+            || state == State::RotateLeftBack || state == State::RotateRightBack;
 }
 
 static bool stopped() noexcept
@@ -66,38 +67,38 @@ static bool stopped() noexcept
     return state == State::Stop && motors.get_unite_speed() == 0;
 }
 
-void state_transition(const SensorsData& sensors)
+// We do not assign state value directly
+// We return the next state value
+State state_transition(const SensorsData& sensors)
 {
     // this is terminal state
     if (prev_state == State::RedButtonStopped)
     {
-        state = State::RedButtonStopped;
-        return;
+        return State::RedButtonStopped;
     }
 
     // TODO: make a class for red button
     if (digitalRead(red_button_pin))
     {
-        state = State::RedButtonStopped;
         state_data = {};
-        return;
+        return State::RedButtonStopped;
     }
 
     // if we only detect line behind, stop and accelerate forward
     if (sensors.is_back_obstacle && !sensors.is_fl_obstacle && !sensors.is_fr_obstacle)
     {
-        if (moving_backwards())
+        if (moving_forwards())
         {
-            state == State::Stop;
-            state_data.speed = 0;
+            return state; // OK, continue moving into center
         }
         else if (stopped())
         {
-            state == State::AccelToSpeed;
             state_data.speed = 10;
+            return State::AccelToSpeed;
         }
 
-        return;
+        state_data.speed = 0;
+        return State::Stop;
     }
     // If we only detect line by the left sensor, rotate right
     else if (!sensors.is_back_obstacle && sensors.is_fl_obstacle && !sensors.is_fr_obstacle)
@@ -166,18 +167,25 @@ void state_transition(const SensorsData& sensors)
         return;
     }
 
-    // if there is something in the front: accel + positive speed
-    if ((front_left_ultrasonic.read() <= 20 && front_left_ultrasonic.read() != 0) ||
-        (front_right_ultrasonic.read() <= 20 && front_right_ultrasonic.read() != 0))
+    if (state == State::Default)
     {
-        state = State::AccelToSpeed;
-        state_data.speed = 10;
-        // if there is nothing at front or sideways, accel + negative speed
+        // TODO: this is the start of the round
+        // Ideally we need to detect what starting position we are in and change state accordingly
+        return state;
     }
-    else if (front_left_ultrasonic.read() > 20 && front_right_ultrasonic.read() > 20)
+
+    // if there is something in the front: accel + positive speed
+    if (sensors.front_detects_enemy())
     {
-        state = State::AccelToSpeed;
+        state_data.speed = 10;
+        return State::AccelToSpeed;
+    }
+    
+    // if there is nothing at front or sideways, accel + negative speed
+    if (sensors.no_enemy_detected())
+    {
         state_data.speed = -10;
+        return State::AccelToSpeed;
     }
 
 #if 0 // for debugging

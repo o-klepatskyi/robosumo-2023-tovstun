@@ -5,6 +5,9 @@
 // #include "display.hpp"
 // #include "debug.hpp"
 
+static constexpr int START_DELAY = 5000;
+static constexpr int LOOP_DELAY = 500;
+
 void setup()
 {
     Serial.begin(9600);
@@ -12,6 +15,7 @@ void setup()
     motors.write_for(90, 2000);
     pinMode(red_button_pin, INPUT);
     Serial.println("Hello world!");
+    delay(START_DELAY);
 }
 
 void loop()
@@ -19,5 +23,5 @@ void loop()
     // either start moving or print IR sensors value
     // debug_display_print_illumination();
     on_loop();
-    delay(500);
+    delay(LOOP_DELAY);
 }
