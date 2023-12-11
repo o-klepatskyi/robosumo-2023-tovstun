@@ -56,9 +56,9 @@ static constexpr int FRONT_DETECTION_THRESHOLD = 20;
 static constexpr int SIDE_DETECTION_THRESHOLD = 20;
 
 struct SensorsData {
-  bool is_fl_obstacle; // detected line on front left
-  bool is_fr_obstacle; // detected line on front right
-  bool is_back_obstacle;
+  bool is_fl_obstacle; // detected line on front left sensor
+  bool is_fr_obstacle; // detected line on front right sensor
+  bool is_back_obstacle; // detected line on back sensor
 
   int fl_us_value; // front left ultrasonic value
   int fr_us_value; // front right ultrasonic value
