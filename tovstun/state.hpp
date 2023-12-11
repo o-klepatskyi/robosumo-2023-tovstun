@@ -8,6 +8,8 @@ enum class State {
   AccelToSpeed,
   DeccelToSpeed,
   HoldSpeed,
+  RotateStillLeft,
+  RotateStillRight,
   RotateLeftBack,
   RotateRightBack,
   RedButtonStopped,

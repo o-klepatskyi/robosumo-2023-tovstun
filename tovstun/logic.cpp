@@ -7,6 +7,8 @@
 static State state = State::Default;
 static State next_state = State::Default;
 static State prev_state = State::Default;
+// TODO: check the right value for black surface
+const int black_threshold = 500;
 
 // static unsigned long prev_time = 0;
 // static unsigned long state_duration = 0; // For how long current state lasts
@@ -61,6 +63,23 @@ void state_transition(const SensorsData& sensors)
         state_data.speed = -10;
     }
 
+    int illuminationValueForwardLeft = analogRead(Sensors.forward_left_illumination_pin);
+    int illuminationValueForwardRight = analogRead(Sensors.forward_right_illumination_pin);
+    int illuminationValueBackward = analogRead(Sensors.backward_illumination_pin);
+
+    if (illuminationValueForwardLeft < black_threshold) {
+        motors.move(0);
+        state = State::RotateStillRight;
+    }
+    else if (illuminationValueForwardRight < black_threshold) {
+        motors.move(0);
+        state = State::RotateStillLeft;
+    }
+    else if (illuminationValueBackward < black_threshold) {
+        state = State::AccelToSpeed;
+        state_data.speed = 10;
+    }
+
     // THAT MUST BE BEFORE LAST IF: stop if we see white line
     if (state_data.speed > 0 && forward_right_illumination_sensor.collides() ||
         forward_left_illumination_sensor.collides())
@@ -113,6 +132,16 @@ void apply_movement()
             motors.move(max(0, motors.get_unite_speed() - 3));
         else if (state_data.speed <= 0 && motors.get_unite_speed() < state_data.speed)
             motors.move(min(0, motors.get_unite_speed() + 3));
+    }
+    else if (state == State:RotateStillLeft) 
+    {
+        Serial.println("ROTATING STILL LEFT");
+        motors.rotate_left_still(10);
+    }
+    else if (state == State::RotateStillRight) 
+    {
+        Serial.println("ROTATING STILL RIGHT");
+        motors.rotate_right_still(10);
     }
     else if (state == State::Stop || state == State::RedButtonStopped)
     {

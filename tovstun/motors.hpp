@@ -166,6 +166,20 @@ struct Motors {
     prepare_right();
     write_for_l(speed, 50);
   }
+  void rotate_left_still(int speed)
+  {
+    int left_speed = 90 - speed; // Reverse direction for left motor
+    int right_speed = 90 + speed; // Forward direction for right motor
+    write_for_l(speed, left_speed);
+    write_for_r(speed, right_speed);
+  }
+  void rotate_right_still(int speed)
+  {
+    int left_speed = 90 + speed; // Forward direction for left motor
+    int right_speed = 90 - speed; // Reverse direction for right motor
+    write_for_l(speed, left_speed);
+    write_for_r(speed, right_speed);
+  }
   // ASSUME: speed for motors is equal
   int get_unite_speed() { return l_prev_speed - 90; }
   int l_prev_speed = 90, r_prev_speed = 90;
