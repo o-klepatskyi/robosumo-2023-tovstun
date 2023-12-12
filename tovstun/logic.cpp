@@ -10,8 +10,8 @@ static State prev_state = State::Default;
 
 // TODO: review this constants
 static constexpr int DEFAULT_ACCELERATION = 1; // amount of speed we add each loop
-static constexpr int DEFAULT_SPEED = 10;
-static constexpr int DEFAULT_ROTATION_SPEED = 6;
+static constexpr int DEFAULT_SPEED = 4;
+static constexpr int DEFAULT_ROTATION_SPEED = 4;
 
 // static unsigned long prev_time = 0;
 // static unsigned long state_duration = 0; // For how long current state lasts
@@ -201,7 +201,7 @@ State state_transition(const SensorsData& sensors)
         state_data = {};
         return State::RedButtonStopped;
     }
-
+#if 0
     // Firstly check the edge
     if (sensors.edge_detected())
         return move_from_edge(sensors);
@@ -243,7 +243,7 @@ State state_transition(const SensorsData& sensors)
         state_data.speed = -DEFAULT_SPEED;
         return State::AccelToSpeed;
     }
-
+#endif
 #if 0 // for debugging
     if (front_left_ultrasonic.read() < 20) {
       state = State::AccelToSpeed;
