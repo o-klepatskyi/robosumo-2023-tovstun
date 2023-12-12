@@ -71,16 +71,6 @@ void on_loop()
     Serial.println(state_to_string(state));
 
     apply_movement();
-
-    // if (state == next_state)
-    // return;
-
-    // state = next_state;
-    // state_duration = 0;
-
-    // SensorsData sensors = SensorsData::read();
-    // state_transition(sensors);
-    // apply_movement();
 }
 
 static bool moving_forwards() noexcept
