@@ -208,8 +208,24 @@ State state_transition(const SensorsData& sensors)
 
     if (state == State::Default)
     {
-        
-        return state;
+        if (sensors.front_detects_enemy())
+        {
+            state_data.speed = DEFAULT_SPEED;
+            return State::AccelToSpeed;
+        }
+        else if (sensors.left_detects_enemy())
+        {
+            state_data.speed = DEFAULT_ROTATION_SPEED;
+            return State::RotateLeft90Degrees;
+        }
+        else if (sensors.right_detects_enemy())
+        {
+            state_data.speed = DEFAULT_ROTATION_SPEED;
+            return State::RotateRight90Degrees;
+        }
+
+        state_data.speed = -DEFAULT_SPEED;
+        return State::AccelToSpeed;
     }
 
     // if there is something in the front: accel + positive speed
@@ -268,13 +284,25 @@ void apply_movement()
     }
     else if (state == State::RotateLeftBack)
     {
-        // TODO: we do not check if left motor is stopped
-        motors.rotate_left(state_data.speed);
+        if (motors.get_unite_speed() == 0)
+        {
+            motors.rotate_left(state_data.speed);
+        }
     }
     else if (state == State::RotateRightBack)
     {
-        // TODO: we do not check if right motor is stopped
-        motors.rotate_right(state_data.speed);
+        if (motors.get_unite_speed() == 0)
+        {
+            motors.rotate_right(state_data.speed);
+        }
+    }
+    else if (state == State::RotateLeft90Degrees) 
+    {
+        motors.rotate_left_90_degrees(DEFAULT_ROTATION_SPEED);
+    }
+    else if (state == State::RotateRight90Degrees) 
+    {
+        motors.rotate_right_90_degrees(DEFAULT_ROTATION_SPEED);
     }
     else if (state == State::Stop || state == State::RedButtonStopped)
     {

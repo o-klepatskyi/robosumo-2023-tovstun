@@ -9,6 +9,15 @@ const int right_motor_pin = 10;
 // servo for the flag
 const int flag_servo_pin = 11;
 
+// Assuming these constants are defined based on our robot's design
+// TODO: define the right constants
+const float wheel_diameter = 0.065; // in meters
+const float wheelbase = 0.16; // in meters
+const float wheel_circumference = PI * wheel_diameter;
+const float rotation_circumference = PI * wheelbase;
+const float rotation_distance = rotation_circumference / 4; // For 90 degrees
+const float rotation_speed = 0.2; // Speed of wheel rotation in meters per second
+
 struct Flag {
   Servo flag;
 
@@ -205,6 +214,20 @@ struct Motors {
       l_motor.write(left_speed);
       r_motor.write(right_speed);
     }
+  }
+
+  void rotate_left_90_degrees(int speed) {
+    float time_to_rotate = rotation_distance / rotation_speed;
+    rotate_left_still(speed);
+    delay(static_cast<unsigned long>(time_to_rotate * 1000)); // Convert seconds to milliseconds
+    stop();
+  }
+
+  void rotate_right_90_degrees(int speed) {
+    float time_to_rotate = rotation_distance / rotation_speed;
+    rotate_right_still(speed);
+    delay(static_cast<unsigned long>(time_to_rotate * 1000)); // Convert seconds to milliseconds
+    stop();
   }
 
   void stop()

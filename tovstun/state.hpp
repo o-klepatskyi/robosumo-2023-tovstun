@@ -11,6 +11,8 @@ enum class State {
   RotateRightStill,
   RotateLeftBack,
   RotateRightBack,
+  RotateLeft90Degrees,
+  RotateRight90Degrees,
   RedButtonStopped,
 };
 
@@ -40,6 +42,10 @@ static const char* state_to_string(State state) noexcept
         return "RotateLeftBack";
     case State::RotateRightBack:
         return "RotateRightBack";
+    case State::RotateLeft90Degrees:
+        return "RotateLeft90Degrees";
+    case State::RotateRight90Degrees:
+        return "RotateRight90Degrees";
     case State::RedButtonStopped:
         return "RedButtonStopped";
     default:
