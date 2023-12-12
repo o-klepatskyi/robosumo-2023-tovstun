@@ -105,7 +105,7 @@ State checkButtonAndRoundTime()
 
 // todo: make this a function similar to state_transition
 // only use this for testing
-void rotate_test()
+State rotate_test()
 {
     if (State::RedButtonStopped == checkButtonAndRoundTime())
         return state;
@@ -147,7 +147,7 @@ void rotate_test()
 
 // todo: make this a function similar to state_transition
 // only use this for testing
-void rotate_loop()
+State rotate_loop()
 {
     static int rotation = 0;
     if (State::RedButtonStopped == checkButtonAndRoundTime())
@@ -438,11 +438,11 @@ void apply_movement()
     // }
     else if (state == State::RotateLeft90Degrees)
     {
-      //  motors.rotate_left_90_degrees(DEFAULT_ROTATION_SPEED);
+       motors.rotate_left_90_degrees();
     }
     else if (state == State::RotateRight90Degrees)
     {
-     //   motors.rotate_right_90_degrees(DEFAULT_ROTATION_SPEED);
+       motors.rotate_right_90_degrees();
     }
     else if (state == State::Stop || state == State::RedButtonStopped || state == State::Default)
     {
