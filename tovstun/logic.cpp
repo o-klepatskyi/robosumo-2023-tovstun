@@ -8,13 +8,24 @@ static State state = State::Default;
 static State next_state = State::Default;
 static State prev_state = State::Default;
 
+static constexpr int ROUND_TIME = 10 * 1000;
+static int start_time = 0;
+static bool started = false;
+
+bool round_finished() noexcept
+{
+    return millis() - start_time >= ROUND_TIME;
+}
+
 // TODO: review this constants
 static constexpr int DEFAULT_ACCELERATION = 1; // amount of speed we add each loop
-static constexpr int DEFAULT_SPEED = 4;
-static constexpr int DEFAULT_ROTATION_SPEED = 4;
+static constexpr int DEFAULT_SPEED = 2;
+static constexpr int DEFAULT_START_SPEED = 3;
+static constexpr int DEFAULT_ROTATION_SPEED = 3;
+static constexpr int DEFAULT_START_ACCEL_DURATION = 1000;
 
-// static unsigned long prev_time = 0;
-// static unsigned long state_duration = 0; // For how long current state lasts
+static unsigned long prev_time = 0;
+static unsigned long state_duration = 0; // For how long current state lasts
 
 static StateData state_data{};
 
@@ -28,17 +39,35 @@ void debug_print();
 
 void on_loop()
 {
-    // const unsigned long curr_time = millis();
-    // const unsigned long dt = curr_time - prev_time;
-    // prev_time = curr_time;
-    // state_duration += dt;
+    if (!started)
+    {
+        started = true;
+        start_time = millis();
+        prev_time = millis();
+    }
+
+    const unsigned long curr_time = millis();
+    const unsigned long dt = curr_time - prev_time;
+    prev_time = curr_time;
+    state_duration += dt;
 
     prev_state = state;
     const SensorsData sensors = SensorsData::read();
 
-    state = state_transition(sensors);
+    State newState = state_transition(sensors);
 
-    Serial.print("STATE: ");
+    if (newState != state)
+    {
+        state_duration = 0;
+        state = newState;
+    }
+
+    Serial.print("STATE:");
+    Serial.print(state_duration);
+    Serial.print(" | duration=");
+    Serial.print(state_data.duration);
+    Serial.print(", speed=");
+    Serial.println(state_data.speed);
     Serial.println(state_to_string(state));
 
     apply_movement();
@@ -189,6 +218,10 @@ static State move_from_edge(const SensorsData& sensors)
 // We return the next state value
 State state_transition(const SensorsData& sensors)
 {
+    if (round_finished())
+    {
+        return State::RedButtonStopped;
+    }
     // this is terminal state
     if (state == State::RedButtonStopped)
     {
@@ -304,7 +337,7 @@ void apply_movement()
     {
         motors.rotate_right_90_degrees(DEFAULT_ROTATION_SPEED);
     }
-    else if (state == State::Stop || state == State::RedButtonStopped)
+    else if (state == State::Stop || state == State::RedButtonStopped || state == State::Default)
     {
         motors.stop();
     }
