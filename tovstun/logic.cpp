@@ -21,8 +21,7 @@ bool round_finished() noexcept
 static constexpr int DEFAULT_ACCELERATION = 1; // amount of speed we add each loop
 static constexpr int DEFAULT_SPEED = 2;
 static constexpr int DEFAULT_START_SPEED = 3;
-static constexpr int DEFAULT_ROTATION_SPEED = 3;
-static constexpr int DEFAULT_START_ACCEL_DURATION = 1000;
+static constexpr int DEFAULT_ROTATION_SPEED = 5; // for negative speed it will be twice as big
 
 static unsigned long prev_time = 0;
 static unsigned long state_duration = 0; // For how long current state lasts
@@ -80,8 +79,8 @@ static bool moving_forwards() noexcept
 
 static bool moving_backwards() noexcept
 {
-    return ((state == State::AccelToSpeed || state == State::DecelToSpeed || state == State::HoldSpeed) && state_data.speed < 0)
-            || state == State::RotateLeftBack || state == State::RotateRightBack;
+    return ((state == State::AccelToSpeed || state == State::DecelToSpeed || state == State::HoldSpeed) && state_data.speed < 0);
+            // || state == State::RotateLeftBack || state == State::RotateRightBack;
 }
 
 static bool stopped() noexcept
@@ -89,10 +88,140 @@ static bool stopped() noexcept
     return state == State::Stop && motors.get_unite_speed() == 0;
 }
 
+State checkButtonAndRoundTime()
+{
+    if (round_finished())
+        return State::RedButtonStopped;
+
+    // this is terminal state
+    if (state == State::RedButtonStopped)
+        return State::RedButtonStopped;
+
+    if (digitalRead(red_button_pin))
+        return State::RedButtonStopped;
+    
+    return state;
+}
+
+// todo: make this a function similar to state_transition
+// only use this for testing
+void rotate_test()
+{
+    if (State::RedButtonStopped == checkButtonAndRoundTime())
+        return state;
+    
+    if (state == State::StartRotateLeftStill)
+        return State::RotatingLeftStill;
+
+    if (state == State::StartRotateRightStill)
+        return State::RotatingRightStill;
+    
+    if (state == State::Default)
+    {
+        state_data.duration = 1000;
+        state_data.speed = DEFAULT_ROTATION_SPEED;
+        return State::StartRotateLeftStill;
+    }
+
+    if (state == State::RotatingLeftStill || state == State::RotatingRightStill)
+    {
+        if (state_duration >= state_data.duration)
+        {
+            state_data.duration = 1000;
+            return State::Stop;
+        }
+        return state;
+    }
+
+    if (state == State::Stop)
+    {
+        if (state_duration >= state_data.duration)
+        {
+            return State::Default;
+        }
+        return state;
+    }
+
+    return state;
+}
+
+// todo: make this a function similar to state_transition
+// only use this for testing
+void rotate_loop()
+{
+    static int rotation = 0;
+    if (State::RedButtonStopped == checkButtonAndRoundTime())
+        return state;
+    
+    if (state == State::StartRotateLeftStill)
+        return State::RotatingLeftStill;
+
+    if (state == State::StartRotateRightStill)
+        return State::RotatingRightStill;
+
+    if (state == State::Default)
+    {
+        state_data.duration = 1000;
+        state_data.speed = DEFAULT_SPEED;
+        return State::AccelToSpeed;
+    }
+
+    if (state == State::AccelToSpeed)
+    {
+        if (state_duration >= state_data.duration)
+        {
+            state_data.duration = 1000; // change this duration
+            state_data.speed = DEFAULT_ROTATION_SPEED;
+            if (rotation == 0)
+                return State::StartRotateLeftStill;
+            else
+                return State::StartRotateRightStill;
+        }
+        return state;
+    }
+
+    if (state == State::RotatingLeftStill)
+    {
+        if (state_duration >= state_data.duration)
+        {
+            rotation = 1;
+            state_duration = 1000;
+            return State::Stop;
+        }
+        return state;
+    }
+
+    if (state == State::RotatingRightStill)
+    {
+        if (state_duration >= state_data.duration)
+        {
+            rotation = 0;
+            state_data.duration = 1000;
+            return State::Stop;
+        }
+        return state;
+    }
+
+    if (state == State::Stop)
+    {
+        if (state_duration >= state_data.duration)
+        {
+            state_data.duration = 2000;
+            state_data.speed = DEFAULT_SPEED;
+            return State::AccelToSpeed;
+        }
+        return state;
+    }
+
+    return state;
+}
+
 // defines state transitions if we detect edge line
 // TODO: we need to improve the way robot moves away from the edge
 static State move_from_edge(const SensorsData& sensors)
 {
+    // TODO: fix rotations
+    #if 0 
     // if we only detect line behind, stop and accelerate forward
     if (sensors.is_back_obstacle && !sensors.is_fl_obstacle && !sensors.is_fr_obstacle)
     {
@@ -202,29 +331,17 @@ static State move_from_edge(const SensorsData& sensors)
     // we will stop just in case
     state_data.speed = 0;
     return State::Stop;
+    #endif
+    return state;
 }
 
 // We do not assign state value directly
 // We return the next state value
 State state_transition(const SensorsData& sensors)
 {
-    if (round_finished())
-    {
-        return State::RedButtonStopped;
-    }
-    // this is terminal state
-    if (state == State::RedButtonStopped)
-    {
-        return State::RedButtonStopped;
-    }
+    if (State::RedButtonStopped == checkButtonAndRoundTime())
+        return state;
 
-    // TODO: make a class for red button
-    if (digitalRead(red_button_pin))
-    {
-        state_data = {};
-        return State::RedButtonStopped;
-    }
-#if 0
     // Firstly check the edge
     if (sensors.edge_detected())
         return move_from_edge(sensors);
@@ -266,7 +383,7 @@ State state_transition(const SensorsData& sensors)
         state_data.speed = -DEFAULT_SPEED;
         return State::AccelToSpeed;
     }
-#endif
+
 #if 0 // for debugging
     if (front_left_ultrasonic.read() < 20) {
       state = State::AccelToSpeed;
@@ -297,33 +414,33 @@ void apply_movement()
         else if (state_data.speed <= 0 && motors.get_unite_speed() < state_data.speed)
             motors.move(min(state_data.speed, motors.get_unite_speed() + DEFAULT_ACCELERATION));
     }
-    else if (state == State::RotateLeftStill)
+    else if (state == State::StartRotateLeftStill)
     {
-        motors.rotate_left_still(state_data.speed, state_data.speed);
+        motors.rotate_left_still(state_data.speed, 2 * state_data.speed);
     }
-    else if (state == State::RotateRightStill)
+    else if (state == State::StartRotateRightStill)
     {
-        motors.rotate_right_still(state_data.speed, state_data.speed);
+        motors.rotate_right_still(state_data.speed, 2 * state_data.speed);
     }
-    else if (state == State::RotateLeftBack)
-    {
-        if (motors.get_unite_speed() == 0)
-        {
-            motors.rotate_left(state_data.speed);
-        }
-    }
-    else if (state == State::RotateRightBack)
-    {
-        if (motors.get_unite_speed() == 0)
-        {
-            motors.rotate_right(state_data.speed);
-        }
-    }
-    else if (state == State::RotateLeft90Degrees) 
+    // else if (state == State::RotateLeftBack)
+    // {
+        // if (motors.get_unite_speed() == 0)
+        // {
+        //     motors.rotate_left(state_data.speed);
+        // }
+    // }
+    // else if (state == State::RotateRightBack)
+    // {
+        // if (motors.get_unite_speed() == 0)
+        // {
+        //     motors.rotate_right(state_data.speed);
+        // }
+    // }
+    else if (state == State::RotateLeft90Degrees)
     {
       //  motors.rotate_left_90_degrees(DEFAULT_ROTATION_SPEED);
     }
-    else if (state == State::RotateRight90Degrees) 
+    else if (state == State::RotateRight90Degrees)
     {
      //   motors.rotate_right_90_degrees(DEFAULT_ROTATION_SPEED);
     }

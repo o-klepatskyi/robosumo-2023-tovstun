@@ -201,7 +201,7 @@ struct Motors {
       r_motor.write(-backward + 90);
     }
   }
-#if 1
+
   void rotate_left_90_degrees(int speed)
   {
     rotate_left_still(rotation_90_degree_forward, rotation_90_degree_backward, rotation_90_degree_duration);
@@ -213,7 +213,7 @@ struct Motors {
     rotate_right_still(rotation_90_degree_forward, rotation_90_degree_backward, rotation_90_degree_duration);
     stop();
   }
-#endif
+
   void stop() { move(0); }
 
   // ASSUME: speed for motors is equal

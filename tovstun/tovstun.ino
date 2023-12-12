@@ -5,8 +5,8 @@
 // #include "display.hpp"
 // #include "debug.hpp"
 
-static constexpr int START_DELAY = 5000;
-static constexpr int LOOP_DELAY = 50;
+static constexpr int START_DELAY = 1000;
+static constexpr int LOOP_DELAY = 30;
 
 void setup()
 {

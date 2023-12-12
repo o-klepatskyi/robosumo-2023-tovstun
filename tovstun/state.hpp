@@ -1,16 +1,17 @@
 #pragma once
 
-
 enum class State {
   Default = 0, // State when the round hasn't yet started, but sensors can be read
   Stop,
   AccelToSpeed,
   DecelToSpeed,
   HoldSpeed,
-  RotateLeftStill,
-  RotateRightStill,
-  RotateLeftBack,
-  RotateRightBack,
+  StartRotateLeftStill,
+  StartRotateRightStill,
+  RotatingLeftStill,
+  RotatingRightStill,
+  // RotateLeftBack,
+  // RotateRightBack,
   RotateLeft90Degrees,
   RotateRight90Degrees,
   RedButtonStopped,
@@ -18,6 +19,7 @@ enum class State {
 
 struct StateData {
   int speed = 0;
+  int duration = 1000;
 };
 
 static const char* state_to_string(State state) noexcept
@@ -34,14 +36,18 @@ static const char* state_to_string(State state) noexcept
         return "DecelToSpeed";
     case State::HoldSpeed:
         return "HoldSpeed";
-    case State::RotateLeftStill:
-        return "RotateLeftStill";
-    case State::RotateRightStill:
-        return "RotateRightStill";
-    case State::RotateLeftBack:
-        return "RotateLeftBack";
-    case State::RotateRightBack:
-        return "RotateRightBack";
+    case State::StartRotateLeftStill:
+        return "StartRotateLeftStill";
+    case State::StartRotateRightStill:
+        return "StartRotateRightStill";
+    case State::RotatingLeftStill:
+        return "RotatingLeftStill";
+    case State::RotatingRightStill:
+        return "RotatingRightStill";
+    // case State::RotateLeftBack:
+    //     return "RotateLeftBack";
+    // case State::RotateRightBack:
+    //     return "RotateRightBack";
     case State::RotateLeft90Degrees:
         return "RotateLeft90Degrees";
     case State::RotateRight90Degrees:
