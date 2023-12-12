@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 #include <Ultrasonic.h>
+#include <Wire.h>
+#include <VL53L0X.h>
 
 // ultrasonic sensors
 const int forward_left_ultrasonic_trig_pin = 4;
@@ -24,6 +26,20 @@ extern Ultrasonic right_ultrasonic;
 const int forward_left_illumination_pin = A0;
 const int forward_right_illumination_pin = A1;
 const int backward_illumination_pin = A2;
+
+//infrared sensor
+struct Infrared_sensor {
+  VL53L0X sensor;
+  void init() 
+  {
+    Wire.begin();
+    sensor.init();
+    sensor.setMeasurementTimingBudget(20000);
+  }
+  int read() { return sensor.readRangeSingleMillimeters(); }
+};
+extern Infrared_sensor infrared;
+
 
 const int red_button_pin = 13;
 

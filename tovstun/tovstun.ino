@@ -2,15 +2,16 @@
 #include "motors.hpp"
 #include "sensors.hpp"
 #include "state.hpp"
-// #include "display.hpp"
-// #include "debug.hpp"
+
 
 static constexpr int START_DELAY = 1000;
 static constexpr int LOOP_DELAY = 30;
 
+
 void setup()
 {
     Serial.begin(9600);
+    infrared.init();
     motors.attach();
     motors.write_for(90, 2000);
     pinMode(red_button_pin, INPUT);
