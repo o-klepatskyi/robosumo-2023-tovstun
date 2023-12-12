@@ -65,7 +65,7 @@ void on_loop()
     Serial.print("STATE:");
     Serial.print(state_duration);
     Serial.print(" | duration=");
-    Serial.print(state_data.duration);
+   // Serial.print(state_data.duration);
     Serial.print(", speed=");
     Serial.println(state_data.speed);
     Serial.println(state_to_string(state));
@@ -299,11 +299,11 @@ void apply_movement()
     }
     else if (state == State::RotateLeftStill)
     {
-        motors.rotate_left_still(state_data.speed);
+        motors.rotate_left_still(state_data.speed, state_data.speed);
     }
     else if (state == State::RotateRightStill)
     {
-        motors.rotate_right_still(state_data.speed);
+        motors.rotate_right_still(state_data.speed, state_data.speed);
     }
     else if (state == State::RotateLeftBack)
     {
@@ -321,11 +321,11 @@ void apply_movement()
     }
     else if (state == State::RotateLeft90Degrees) 
     {
-        motors.rotate_left_90_degrees(DEFAULT_ROTATION_SPEED);
+      //  motors.rotate_left_90_degrees(DEFAULT_ROTATION_SPEED);
     }
     else if (state == State::RotateRight90Degrees) 
     {
-        motors.rotate_right_90_degrees(DEFAULT_ROTATION_SPEED);
+     //   motors.rotate_right_90_degrees(DEFAULT_ROTATION_SPEED);
     }
     else if (state == State::Stop || state == State::RedButtonStopped || state == State::Default)
     {
