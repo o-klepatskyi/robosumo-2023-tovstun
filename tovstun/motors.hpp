@@ -47,14 +47,17 @@ struct Motors
 
     void prepare_forward(bool left = true, bool right = true)
     {
-        if (l_prev_speed >= 90 && r_prev_speed >= 90)
+        // do we need to prepare them at all?
+        left = left && l_prev_speed < 90;
+        right = right && r_prev_speed < 90;
+        if (!left && !right)
             return;
         unsigned long prevMillis = millis();
         while (millis() - prevMillis <= prepare_write_duration)
         {
-            if (l_prev_speed < 90)
+            if (left && l_prev_speed < 90)
                 l_motor.write(90);
-            if (r_prev_speed < 90)
+            if (right && r_prev_speed < 90)
                 r_motor.write(90);
         }
     }
@@ -62,24 +65,27 @@ struct Motors
     // я навіть не буду намагатися писати коментарі англійською
     // в цьому коді правди нема, а баги є
     // воно таке страшне тільки тому, щоб перемикати назад не за 12с, а за 6(а то і менше)
-    void prepare_backward()
+    void prepare_backward(bool left = true, bool right = true)
     {
-        if (l_prev_speed < 90 && r_prev_speed < 90)
+        // do we need to prepare them at all? 
+        left = left && l_prev_speed >= 90;
+        right = right && r_prev_speed >= 90;
+        if (!left && !right)
             return;
         unsigned long prevMillis = millis();
         while (millis() - prevMillis <= prepare_write_duration)
         {
-            if (l_prev_speed >= 90)
+            if (left && l_prev_speed >= 90)
                 l_motor.write(87);
-            if (r_prev_speed >= 90)
+            if (right && r_prev_speed >= 90)
                 r_motor.write(87);
         }
         prevMillis = millis();
         while (millis() - prevMillis <= prepare_write_duration)
         {
-            if (l_prev_speed >= 90)
+            if (left && l_prev_speed >= 90)
                 l_motor.write(90);
-            if (r_prev_speed >= 90)
+            if (right && r_prev_speed >= 90)
                 r_motor.write(90);
         }
     }
@@ -107,38 +113,14 @@ struct Motors
 
     void prepare_left_forward_right_backward()
     {
-        if (l_prev_speed >= 90 && r_prev_speed < 90)
-            return;
-        unsigned long prevMillis = millis();
-        while (millis() - prevMillis <= prepare_write_duration)
-        {
-            if (r_prev_speed >= 90)
-                r_motor.write(87);
-        }
-        prevMillis = millis();
-        while (millis() - prevMillis <= prepare_write_duration)
-        {
-            if (r_prev_speed >= 90)
-                r_motor.write(90);
-        }
+        prepare_forward(true, false);
+        prepare_backward(false, true);
     }
 
     void prepare_left_backward_right_forward()
     {
-        if (r_prev_speed >= 90 && l_prev_speed < 90)
-            return;
-        unsigned long prevMillis = millis();
-        while (millis() - prevMillis <= prepare_write_duration)
-        {
-            if (l_prev_speed >= 90)
-                l_motor.write(87);
-        }
-        prevMillis = millis();
-        while (millis() - prevMillis <= prepare_write_duration)
-        {
-            if (l_prev_speed >= 90)
-                l_motor.write(90);
-        }
+        prepare_forward(false, true);
+        prepare_backward(true, false);
     }
 
     // TODO: do we need to stop the other motor here???
