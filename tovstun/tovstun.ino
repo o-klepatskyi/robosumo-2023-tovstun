@@ -6,7 +6,7 @@
 // #include "debug.hpp"
 
 static constexpr int START_DELAY = 5000;
-static constexpr int LOOP_DELAY = 100;
+static constexpr int LOOP_DELAY = 50;
 
 void setup()
 {
@@ -14,6 +14,9 @@ void setup()
     motors.attach();
     motors.write_for(90, 2000);
     pinMode(red_button_pin, INPUT);
+    front_left_illumination_sensor.BLACK_THRESHOLD = 300;
+    front_right_illumination_sensor.BLACK_THRESHOLD = 320;
+    // TODO: add back sensor
     Serial.println("Hello robot!");
 }
 

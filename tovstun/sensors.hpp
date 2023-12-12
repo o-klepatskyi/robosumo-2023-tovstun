@@ -27,26 +27,24 @@ const int backward_illumination_pin = A2;
 
 const int red_button_pin = 13;
 
-struct Illumination_sensor {
-  // TODO: recheck this value
-  static constexpr int BLACK_THRESHOLD = 800;
-  int pin;
+struct Illumination_sensor
+{
+    // TODO: recheck this value
+    int BLACK_THRESHOLD = 1000;
+    int pin;
 
-  Illumination_sensor(int pin)
-    : pin{ pin } {
-    pinMode(pin, INPUT);
-  }
+    Illumination_sensor(int pin)
+        : pin{pin}
+    {
+        pinMode(pin, INPUT);
+    }
 
-  /**
-   * Is there an obstacle?
-   */
-  bool collides() {
-    return read() >= BLACK_THRESHOLD;
-  }
+    /**
+     * Is there an obstacle?
+     */
+    bool collides() { return read() >= BLACK_THRESHOLD; }
 
-  int read() {
-    return analogRead(pin);
-  }
+    int read() { return analogRead(pin); }
 };
 
 extern Illumination_sensor front_left_illumination_sensor;
