@@ -41,8 +41,8 @@ State checkButton()
 // only use this for testing
 State rotate_test(const SensorsData& sensors)
 {
-    if (State::RedButtonStopped == checkButton())
-        return state;
+    // if (State::RedButtonStopped == checkButton())
+    //     return State::RedButtonStopped;
     
     if (state == State::StartRotateLeftStill)
         return State::RotatingLeftStill;
@@ -84,7 +84,7 @@ State rotate_loop(const SensorsData& sensors)
 {
     static int rotation = 0;
     if (State::RedButtonStopped == checkButton())
-        return state;
+        return State::RedButtonStopped;
     
     if (state == State::StartRotateLeftStill)
         return State::RotatingLeftStill;
@@ -273,7 +273,7 @@ static State move_from_edge(const SensorsData& sensors)
 State state_transition(const SensorsData& sensors)
 {
     if (State::RedButtonStopped == checkButton())
-        return state;
+        return State::RedButtonStopped;
 
     // Firstly check the edge
     if (sensors.edge_detected())
@@ -318,7 +318,7 @@ State state_transition(const SensorsData& sensors)
         state_data.speed = DEFAULT_ROTATION_SPEED;
         return State::RotateRight90Degrees;
      }
-     if(sensors.back_detects_enemy())
+     if (sensors.back_detects_enemy())
      {
         state_data.speed = -DEFAULT_SPEED;
         return State::AccelToSpeed;
