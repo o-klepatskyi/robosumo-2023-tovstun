@@ -11,6 +11,8 @@ extern State prev_state;
 // decide what state in next depending on the sensors values
 State state_transition(const SensorsData& sensors);
 State rotate_test(const SensorsData& sensors);
+State rotate_test2(const SensorsData& sensors);
+State move_test(const SensorsData& sensors);
 State rotate_loop(const SensorsData& sensors);
 
 // sends signals to motors depending on the current state

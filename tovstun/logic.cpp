@@ -41,6 +41,7 @@ State checkButton()
 // only use this for testing
 State rotate_test(const SensorsData& sensors)
 {
+    static bool rotate_left = true;
     // if (State::RedButtonStopped == checkButton())
     //     return State::RedButtonStopped;
     
@@ -54,7 +55,10 @@ State rotate_test(const SensorsData& sensors)
     {
         state_data.duration = 1000;
         state_data.speed = DEFAULT_ROTATION_SPEED;
-        return State::StartRotateLeftStill;
+        if (rotate_left)
+            return State::StartRotateLeftStill;
+        else
+            return State::StartRotateRightStill;
     }
 
     if (state == State::RotatingLeftStill || state == State::RotatingRightStill)
@@ -71,6 +75,87 @@ State rotate_test(const SensorsData& sensors)
     {
         if (state_duration >= state_data.duration)
         {
+            rotate_left = !rotate_left;
+            return State::Default;
+        }
+        return state;
+    }
+
+    return state;
+}
+
+// only use this for testing
+State rotate_test2(const SensorsData& sensors)
+{
+    static bool rotate_left = true;
+    // if (State::RedButtonStopped == checkButton())
+    //     return State::RedButtonStopped;
+    
+    if (state == State::Default)
+    {
+        state_data.duration = 1000;
+        state_data.speed = DEFAULT_ROTATION_SPEED;
+        if (rotate_left)
+            return State::StartRotateLeftStill;
+        else
+            return State::StartRotateRightStill;
+    }
+
+    if (state == State::StartRotateLeftStill || state == State::StartRotateRightStill)
+    {
+        if (state_duration >= state_data.duration)
+        {
+            state_data.duration = 1000;
+            return State::Stop;
+        }
+        return state;
+    }
+
+    if (state == State::Stop)
+    {
+        if (state_duration >= state_data.duration)
+        {
+            rotate_left = !rotate_left;
+            return State::Default;
+        }
+        return state;
+    }
+
+    return state;
+}
+
+// only use this for testing
+State move_test(const SensorsData& sensors)
+{
+    static bool move_forward = true;
+    // if (State::RedButtonStopped == checkButton())
+    //     return State::RedButtonStopped;
+    
+    if (state == State::Default)
+    {
+        state_data.duration = 1000;
+        state_data.speed = DEFAULT_ROTATION_SPEED;
+        if (!move_forward)
+            state_data.speed = -state_data.speed;
+        
+        return State::AccelToSpeed;
+    }
+
+    if (state == State::AccelToSpeed)
+    {
+        if (state_duration >= state_data.duration)
+        {
+            state_data.duration = 1000;
+            return State::Stop;
+        }
+        return state;
+    }
+
+    if (state == State::Stop)
+    {
+        if (state_duration >= state_data.duration)
+        {
+            move_forward = !move_forward;
             return State::Default;
         }
         return state;
