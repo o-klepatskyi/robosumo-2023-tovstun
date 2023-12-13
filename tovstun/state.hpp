@@ -5,6 +5,8 @@ enum class State {
   Stop,
   StartAccel,
   AccelToSpeed,
+  AccelToSpeedEnemyOnTheLeft,
+  AccelToSpeedEnemyOnTheRight,
   DecelToSpeed,
   HoldSpeed,
   StartRotateLeftStill,

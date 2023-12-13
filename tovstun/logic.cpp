@@ -12,7 +12,7 @@ State prev_state = State::Default;
 
 static bool moving_forwards() noexcept
 {
-    return (state == State::AccelToSpeed || state == State::DecelToSpeed || state == State::HoldSpeed) && state_data.speed > 0;
+    return (state == State::AccelToSpeed || state == State::AccelToSpeedEnemyOnTheLeft || state == State::AccelToSpeedEnemyOnTheRight || state == State::DecelToSpeed || state == State::HoldSpeed) && state_data.speed > 0;
 }
 
 static bool moving_backwards() noexcept
@@ -448,6 +448,16 @@ State state_transition(const SensorsData& sensors)
 
     // if there is something in the front: accel + positive speed
     // TODO: maybe we need to align ourselves with the enemy so both sensors see him???
+    if(sensors.fl_detects_enemy() || !sensors.fr_detects_enemy())
+    {
+        state_data.speed = DEFAULT_SPEED;
+        return State::AccelToSpeedEnemyOnTheLeft;
+    }
+    if(sensors.fr_detects_enemy() || !sensors.fl_detects_enemy())
+    {
+        state_data.speed = DEFAULT_SPEED;
+        return State::AccelToSpeedEnemyOnTheLeft;
+    }
     if (sensors.front_detects_enemy())
     {
         state_data.speed = DEFAULT_SPEED;
@@ -502,6 +512,16 @@ void apply_movement()
             motors.move(min(state_data.speed, motors.get_unite_speed() + DEFAULT_ACCELERATION));
         else if (state_data.speed <= 0 && motors.get_unite_speed() > state_data.speed)
             motors.move(max(state_data.speed, motors.get_unite_speed() - DEFAULT_ACCELERATION));
+    }
+    else if(state == State::AccelToSpeedEnemyOnTheRight)
+    {
+      int speed = min(state_data.speed, motors.get_unite_speed() + DEFAULT_ACCELERATION);
+         motors.move_sideways(speed - SIDEWAYS_DIFFERENCE, speed);
+    }
+    else if(state == State::AccelToSpeedEnemyOnTheRight)
+    {
+      int speed = min(state_data.speed, motors.get_unite_speed() + DEFAULT_ACCELERATION);
+         motors.move_sideways(speed, speed - SIDEWAYS_DIFFERENCE);
     }
     else if (state == State::DecelToSpeed)
     {

@@ -27,6 +27,7 @@ static constexpr int DEFAULT_ACCELERATION = 1; // amount of speed we add each lo
 static constexpr int DEFAULT_SPEED = 6;
 static constexpr int DEFAULT_START_SPEED = 3;
 static constexpr int DEFAULT_ROTATION_SPEED = 4; // for negative speed it will be twice as big
+static constexpr int SIDEWAYS_DIFFERENCE = 1;
 
 struct Flag
 {
@@ -66,6 +67,8 @@ struct Motors
     void prepare_backward(bool left = true, bool right = true);
 
     void move(int speed);
+    
+    void move_sideways(int speed_l, int speed_r);
 
     void prepare_left_forward_right_backward();
 
@@ -76,6 +79,8 @@ struct Motors
     void prepare_right();
 
     void write_for(int speed, unsigned long miliseconds);
+    
+    void write_for_different_speed(int speed_l, int speed_r, unsigned long miliseconds);
 
     void write_for_l(int speed, unsigned long miliseconds);
 

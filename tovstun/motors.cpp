@@ -63,6 +63,14 @@ void Motors::move(int speed)
         write_for(actual_speed, 40);
     }
 }
+void Motors::move_sideways(int speed_l, int speed_r)
+{
+  prepare_forward(true, true);
+  write_for_different_speed(speed_l, speed_r, 40);
+
+}
+
+
 
 void Motors::prepare_left_forward_right_backward()
 {
@@ -97,7 +105,15 @@ void Motors::write_for(int speed, unsigned long miliseconds)
         r_motor.write(speed);
     }
 }
-
+void Motors::write_for_different_speed(int speed_l, int speed_r, unsigned long miliseconds)
+{
+    unsigned long prevMillis = millis();
+    while (millis() - prevMillis <= miliseconds)
+    {
+        l_motor.write(speed_l);
+        r_motor.write(speed_r);
+    }
+}
 void Motors::write_for_l(int speed, unsigned long miliseconds)
 {
     unsigned long prevMillis = millis();
