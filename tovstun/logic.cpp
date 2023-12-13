@@ -244,13 +244,17 @@ State rotate_loop(const SensorsData& sensors)
 }
 
 // defines state transitions if we detect edge line
-// TODO: we need to improve the way robot moves away from the edge
 static State move_from_edge(const SensorsData& sensors)
 {
     if (sensors.is_back_obstacle)
     {
-        state_data.duration = 1000;
+        state_data.duration = 1000; // Just do a quick movement
         state_data.speed = DEFAULT_START_SPEED; // TODO: recheck if this speed is sufficient
+        if (sensors.enemy_detected())
+        {
+            state_data.speed = 15;
+            // TODO: add panic state???
+        }
         return State::StartAccel;
     }
 
@@ -278,9 +282,6 @@ State state_transition(const SensorsData& sensors)
     // Firstly check the edge
     if (sensors.edge_detected())
         return move_from_edge(sensors);
-
-        state_data.speed = -DEFAULT_SPEED;
-        return State::StartAccel;
     
     if (state == State::RotateLeft90Degrees)
     {
@@ -309,23 +310,28 @@ State state_transition(const SensorsData& sensors)
             }
             return state;
         }
-        // if duration was zero, we continue moving forward
+        // if duration was zero, we continue moving forward until we see enemy
+        // we set normal speed after we gained some momentum
         if (state_data.speed >= 0)
             state_data.speed = DEFAULT_SPEED;
         else
-            state_data.speed = -10;
+            state_data.speed = - DEFAULT_SPEED - 2; // TODO
         return State::AccelToSpeed;
     }
     else if (state == State::StartRotateLeftStill)
     {
+        // TODO: review rotating code
         return State::RotatingLeftStill;
     }
     else if (state == State::StartRotateRightStill)
     {
+        // TODO: review rotating code
         return State::RotatingRightStill;
     }
     else if (state == State::RotatingLeftStill)
     {
+        // TODO: review rotating code
+        // TODO: add rotation stop when it starts rotating back
         if (sensors.front_detects_enemy())
         {
             state_data.speed = DEFAULT_START_SPEED;
@@ -334,21 +340,44 @@ State state_transition(const SensorsData& sensors)
     }
     else if (state == State::RotatingRightStill)
     {
+        // TODO: review rotating code
+        // TODO: add rotation stop when it starts rotating back
         if (sensors.front_detects_enemy())
         {
             state_data.speed = DEFAULT_START_SPEED;
             return State::StartAccel;
         }
     }
-
-    if (sensors.enemy_close_front())
+    else if (state == State::AccelToSpeed)
     {
-        state_data.speed = 6;
-        return State::AccelToSpeed;
+        // we need to give more power if we are pushing enemy
+        if (sensors.enemy_close_front())
+        {
+            // TODO: review this speeds
+            if (state_data.speed > 0)
+                state_data.speed = 8;
+            else
+                state_data.speed = -10;
+            return State::AccelToSpeed;
+        }
+        // if (state_data.duration > 0 && state_duration >= state_data.duration)
+        // {
+        //     state_data = {};
+        //     next_state = State::Default;
+        //     return State::Stop;
+        // }
+
+        // we do not return here so we can detect enemy on our way
     }
 
-    // if there is something in the front: accel + positive speed
     // TODO: maybe we need to align ourselves with the enemy so both sensors see him???
+    // TODO: we will move with slight turn instead
+    // Artem
+    
+    // ENEMY DETECTION
+
+    // TODO: if we are moving and want to start rotation, maybe we need to stop moving first
+
     if (sensors.front_detects_enemy())
     {
         state_data.speed = DEFAULT_START_SPEED;
@@ -368,18 +397,16 @@ State state_transition(const SensorsData& sensors)
     else if (sensors.back_detects_enemy())
     {
         // TODO: rotate and move forward???
-        state_data.speed = -DEFAULT_SPEED;
+        state_data.speed = -DEFAULT_SPEED - 2;
         return State::AccelToSpeed;
     }
 
-    // if there is nothing at front or sideways or back we will rotate righ while we will not see _something_ with front
-    // sensor
-    // TODO: incorrect behaviour, enemy must be behind us
-    if (sensors.no_enemy_detected())
+    // if we do not see enemy anywhere, we move forward until we see a line
+    // if we are already moving, continue moving to the line
+    if (state != State::AccelToSpeed && sensors.no_enemy_detected())
     {
-        // state_data.speed = DEFAULT_ROTATION_SPEED;
-        // return State::StartRotateRightStill;
-        state_data.speed = - DEFAULT_START_SPEED;
+        state_data.duration = 0;
+        state_data.speed = DEFAULT_START_SPEED;
         return State::StartAccel;
     }
 

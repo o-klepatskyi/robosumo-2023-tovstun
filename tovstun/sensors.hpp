@@ -70,8 +70,7 @@ extern Illumination_sensor back_illumination_sensor;
 
 
 static constexpr int FRONT_DETECTION_THRESHOLD_CLOSE = 10;
-static constexpr int FRONT_DETECTION_THRESHOLD = 50;
-static constexpr int FRONT_RIGHT_DETECTION_THRESHOLD = 45;
+static constexpr int FRONT_DETECTION_THRESHOLD = 60;
 static constexpr int BACK_DETECTION_THRESHOLD = 500; // !!!milimeters!!!
 static constexpr int SIDE_DETECTION_THRESHOLD = 50;
 
@@ -133,6 +132,11 @@ struct SensorsData {
   bool no_enemy_detected() const noexcept
   {
     return !front_detects_enemy() && !left_detects_enemy() && !right_detects_enemy();
+  }
+
+  bool enemy_detected() const noexcept
+  {
+    return !no_enemy_detected();
   }
 
   bool edge_detected() const noexcept
