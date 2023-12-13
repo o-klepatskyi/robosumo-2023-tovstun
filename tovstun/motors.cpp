@@ -12,42 +12,36 @@ void Motors::attach()
 void Motors::prepare_forward(bool left, bool right)
 {
     // do we need to prepare them at all?
-    left = left && l_prev_speed < 90;
-    right = right && r_prev_speed < 90;
+    left = left && l_motor.prev_speed() < 90;
+    right = right && r_motor.prev_speed() < 90;
     if (!left && !right)
         return;
     unsigned long prevMillis = millis();
     while (millis() - prevMillis <= prepare_write_duration)
     {
-        if (left && l_prev_speed < 90)
-            l_motor.write(90);
-        if (right && r_prev_speed < 90)
-            r_motor.write(90);
+        if (left)  l_motor.write(90);
+        if (right) r_motor.write(90);
     }
 }
 
 void Motors::prepare_backward(bool left, bool right)
 {
     // do we need to prepare them at all?
-    left = left && l_prev_speed >= 90;
-    right = right && r_prev_speed >= 90;
+    left = left && l_motor.prev_speed() >= 90;
+    right = right && r_motor.prev_speed() >= 90;
     if (!left && !right)
         return;
     unsigned long prevMillis = millis();
     while (millis() - prevMillis <= prepare_write_duration)
     {
-        if (left && l_prev_speed >= 90)
-            l_motor.write(87);
-        if (right && r_prev_speed >= 90)
-            r_motor.write(87);
+        if (left)  l_motor.write(87);
+        if (right) r_motor.write(87);
     }
     prevMillis = millis();
     while (millis() - prevMillis <= prepare_write_duration)
     {
-        if (left && l_prev_speed >= 90)
-            l_motor.write(90);
-        if (right && r_prev_speed >= 90)
-            r_motor.write(90);
+        if (left)  l_motor.write(90);
+        if (right) r_motor.write(90);
     }
 }
 
@@ -68,8 +62,6 @@ void Motors::move(int speed)
         prepare_backward();
         write_for(actual_speed, 40);
     }
-    l_prev_speed = actual_speed;
-    r_prev_speed = actual_speed;
 }
 
 void Motors::prepare_left_forward_right_backward()
@@ -86,26 +78,14 @@ void Motors::prepare_left_backward_right_forward()
 
 void Motors::prepare_left()
 {
-    if (r_prev_speed >= 90)
-        return;
-    unsigned long prevMillis = millis();
-    while (millis() - prevMillis <= prepare_write_duration)
-    {
-        if (r_prev_speed < 90)
-            r_motor.write(90);
-    }
+    // prepare only right motor
+    prepare_backward(false, true);
 }
 
 void Motors::prepare_right()
 {
-    if (l_prev_speed >= 90)
-        return;
-    unsigned long prevMillis = millis();
-    while (millis() - prevMillis <= prepare_write_duration)
-    {
-        if (l_prev_speed < 90)
-            l_motor.write(90);
-    }
+    // prepare only left motor
+    prepare_backward(true, false);
 }
 
 void Motors::write_for(int speed, unsigned long miliseconds)

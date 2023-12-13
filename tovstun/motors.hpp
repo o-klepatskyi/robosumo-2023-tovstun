@@ -44,12 +44,20 @@ struct Flag
 
 extern Flag flag;
 
+class Motor
+{
+    Servo servo;
+    int motor_speed = 90;
+public:
+    void attach(int pin) { servo.attach(pin); }
+    void write(int speed) { servo.write(speed); motor_speed = speed; }
+    int prev_speed() const { return motor_speed; }
+};
+
 struct Motors
 {
     static constexpr unsigned long prepare_write_duration = 100;
-
-    int l_prev_speed = 90, r_prev_speed = 90;
-    Servo l_motor, r_motor;
+    Motor l_motor, r_motor;
 
     void attach();
 
@@ -63,7 +71,6 @@ struct Motors
 
     void prepare_left_backward_right_forward();
 
-    // TODO: do we need to stop the other motor here???
     void prepare_left();
 
     void prepare_right();
@@ -89,7 +96,7 @@ struct Motors
     void stop() { move(0); }
 
     // ASSUME: speed for motors is equal
-    int get_unite_speed() { return l_prev_speed - 90; }
+    int get_unite_speed() { return l_motor.prev_speed() - 90; }
 };
 
 extern Motors motors;
