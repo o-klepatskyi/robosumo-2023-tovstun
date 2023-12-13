@@ -4,73 +4,17 @@
 #include "state.hpp"
 #include <Arduino.h> // Serial.println
 
-static State state = State::Default;
-static State next_state = State::Default;
-static State prev_state = State::Default;
-
-static constexpr int ROUND_TIME = 10 * 1000;
-static int start_time = 0;
-static bool started = false;
-
-bool round_finished() noexcept
-{
-    return millis() - start_time >= ROUND_TIME;
-}
+unsigned long state_duration = 0;
+StateData state_data {};
+State state = State::Default;
+State next_state = State::Default;
+State prev_state = State::Default;
 
 // TODO: review this constants
 static constexpr int DEFAULT_ACCELERATION = 1; // amount of speed we add each loop
 static constexpr int DEFAULT_SPEED = 2;
 static constexpr int DEFAULT_START_SPEED = 3;
 static constexpr int DEFAULT_ROTATION_SPEED = 5; // for negative speed it will be twice as big
-
-static unsigned long prev_time = 0;
-static unsigned long state_duration = 0; // For how long current state lasts
-
-static StateData state_data{};
-
-// decide what state in next depending on the sensors values
-State state_transition(const SensorsData& sensors);
-
-// apply current movement state, i.e. send signals to motors
-void apply_movement();
-
-void debug_print();
-
-void on_loop()
-{
-    if (!started)
-    {
-        started = true;
-        start_time = millis();
-        prev_time = millis();
-    }
-
-    const unsigned long curr_time = millis();
-    const unsigned long dt = curr_time - prev_time;
-    prev_time = curr_time;
-    state_duration += dt;
-
-    prev_state = state;
-    const SensorsData sensors = SensorsData::read();
-
-    State newState = state_transition(sensors);
-
-    if (newState != state)
-    {
-        state_duration = 0;
-        state = newState;
-    }
-
-    Serial.print("STATE:");
-    Serial.print(state_duration);
-    Serial.print(" | duration=");
-   // Serial.print(state_data.duration);
-    Serial.print(", speed=");
-    Serial.println(state_data.speed);
-    Serial.println(state_to_string(state));
-
-    apply_movement();
-}
 
 static bool moving_forwards() noexcept
 {
@@ -88,11 +32,8 @@ static bool stopped() noexcept
     return state == State::Stop && motors.get_unite_speed() == 0;
 }
 
-State checkButtonAndRoundTime()
+State checkButton()
 {
-    if (round_finished())
-        return State::RedButtonStopped;
-
     // this is terminal state
     if (state == State::RedButtonStopped)
         return State::RedButtonStopped;
@@ -103,11 +44,10 @@ State checkButtonAndRoundTime()
     return state;
 }
 
-// todo: make this a function similar to state_transition
 // only use this for testing
-State rotate_test()
+State rotate_test(const SensorsData& sensors)
 {
-    if (State::RedButtonStopped == checkButtonAndRoundTime())
+    if (State::RedButtonStopped == checkButton())
         return state;
     
     if (state == State::StartRotateLeftStill)
@@ -145,12 +85,11 @@ State rotate_test()
     return state;
 }
 
-// todo: make this a function similar to state_transition
 // only use this for testing
-State rotate_loop()
+State rotate_loop(const SensorsData& sensors)
 {
     static int rotation = 0;
-    if (State::RedButtonStopped == checkButtonAndRoundTime())
+    if (State::RedButtonStopped == checkButton())
         return state;
     
     if (state == State::StartRotateLeftStill)
@@ -339,7 +278,7 @@ static State move_from_edge(const SensorsData& sensors)
 // We return the next state value
 State state_transition(const SensorsData& sensors)
 {
-    if (State::RedButtonStopped == checkButtonAndRoundTime())
+    if (State::RedButtonStopped == checkButton())
         return state;
 
     // Firstly check the edge
@@ -397,7 +336,7 @@ State state_transition(const SensorsData& sensors)
     if (sensors.no_enemy_detected())
     {
         state_data.speed = DEFAULT_ROTATION_SPEED;
-        return State::RotateRightStill;
+        return State::StartRotateRightStill;
     }
 
 #if 0 // for debugging
