@@ -375,13 +375,29 @@ State state_transition(const SensorsData& sensors)
         state_data.speed = DEFAULT_SPEED;
         return State::AccelToSpeed;
     }
-    
-    // if there is nothing at front or sideways, accel + negative speed
+     if (sensors.left_detects_enemy())
+     {
+        state_data.speed = DEFAULT_ROTATION_SPEED;
+        return State::RotateLeft90Degrees;
+     }
+     if (sensors.right_detects_enemy())
+     {
+        state_data.speed = DEFAULT_ROTATION_SPEED;
+        return State::RotateRight90Degrees;
+     }
+     if(sensors.back_detects_enemy())
+     {
+        state_data.speed = -DEFAULT_SPEED;
+        return State::AccelToSpeed;
+     }
+
+    // if there is nothing at front or sideways or back we will rotate righ while we will not see _something_ with front
+    // sensor
     // TODO: incorrect behaviour, enemy must be behind us
     if (sensors.no_enemy_detected())
     {
-        state_data.speed = -DEFAULT_SPEED;
-        return State::AccelToSpeed;
+        state_data.speed = DEFAULT_ROTATION_SPEED;
+        return State::RotateRightStill;
     }
 
 #if 0 // for debugging

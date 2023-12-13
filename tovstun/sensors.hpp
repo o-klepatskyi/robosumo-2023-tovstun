@@ -68,8 +68,8 @@ extern Illumination_sensor front_right_illumination_sensor;
 extern Illumination_sensor back_illumination_sensor;
 
 static constexpr int FRONT_DETECTION_THRESHOLD = 20;
+static constexpr int BACK_DETECTION_THRESHOLD = 200; // !!!milimeters!!!
 static constexpr int SIDE_DETECTION_THRESHOLD = 20;
-
 struct SensorsData {
   bool is_fl_obstacle; // detected line on front left sensor
   bool is_fr_obstacle; // detected line on front right sensor
@@ -79,6 +79,7 @@ struct SensorsData {
   int fr_us_value; // front right ultrasonic value
   int l_us_value; // left ultrasonic value
   int r_us_value; // right ultrasonic value
+  int b_ir_value; // back infraered value
 
   static SensorsData read() {
     return SensorsData {
@@ -88,7 +89,8 @@ struct SensorsData {
       front_left_ultrasonic.read(),
       front_right_ultrasonic.read(),
       left_ultrasonic.read(),
-      right_ultrasonic.read()
+      right_ultrasonic.read(),
+      infrared.read()
     };
   }
 
@@ -117,6 +119,10 @@ struct SensorsData {
     return fl_detects_enemy() || fr_detects_enemy();
   }
 
+  bool back_detects_enemy() const noexcept
+  {
+    return b_ir_value <= BACK_DETECTION_THRESHOLD && b_ir_value != 0;
+  }
   bool no_enemy_detected() const noexcept
   {
     return !front_detects_enemy() && !left_detects_enemy() && !right_detects_enemy();

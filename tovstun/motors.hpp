@@ -202,13 +202,13 @@ struct Motors {
     }
   }
 
-  void rotate_left_90_degrees(int speed)
+  void rotate_left_90_degrees()
   {
     rotate_left_still(rotation_90_degree_forward, rotation_90_degree_backward, rotation_90_degree_duration);
     stop();
   }
 
-  void rotate_right_90_degrees(int speed)
+  void rotate_right_90_degrees()
   {
     rotate_right_still(rotation_90_degree_forward, rotation_90_degree_backward, rotation_90_degree_duration);
     stop();

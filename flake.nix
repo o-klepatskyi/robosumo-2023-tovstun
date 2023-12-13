@@ -17,6 +17,10 @@
               arduino
               arduino-core
               screen
+              # pkgs.pkgsCross.avr.buildPackages.gcc
+              # pkgs.pkgsCross.avr.buildPackages.gcc.libc
+              # pkgsi686Linux.glibc
+              # avrdude
             ];
             shellHook = ''
             '';
