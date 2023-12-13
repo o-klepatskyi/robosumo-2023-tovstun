@@ -63,7 +63,7 @@ State rotate_test(const SensorsData& sensors)
 
     if (state == State::RotatingLeftStill || state == State::RotatingRightStill)
     {
-        if (state_duration >= state_data.duration)
+        if (sensors.front_detects_enemy())
         {
             state_data.duration = 1000;
             return State::Stop;
@@ -71,13 +71,17 @@ State rotate_test(const SensorsData& sensors)
         return state;
     }
 
+
     if (state == State::Stop)
     {
+// stop as red button state
+#if 0
         if (state_duration >= state_data.duration)
         {
             rotate_left = !rotate_left;
             return State::Default;
         }
+#endif
         return state;
     }
 
@@ -516,7 +520,10 @@ void apply_movement()
     }
     else if (state == State::StartRotateRightStill)
     {
-        motors.rotate_right_still(state_data.speed, 2 * state_data.speed);
+        motors.rotate_right_still(state_data.speed, 2 * state_data.speed, 100);
+    }
+    else if (state == State::RotatingLeftStill)
+    {
     }
     // else if (state == State::RotateLeftBack)
     // {
