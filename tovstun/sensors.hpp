@@ -33,6 +33,7 @@ struct Infrared_sensor {
   void init() 
   {
     Wire.begin();
+    sensor.setTimeout(50);
     sensor.init();
     sensor.setMeasurementTimingBudget(20000);
   }
@@ -79,18 +80,20 @@ struct SensorsData {
   int fr_us_value; // front right ultrasonic value
   int l_us_value; // left ultrasonic value
   int r_us_value; // right ultrasonic value
-  int b_ir_value; // back infraered value
+  int b_ir_value; // back infrared value
 
   static SensorsData read() {
+    auto fli = front_left_illumination_sensor.collides();
+    auto fri = front_right_illumination_sensor.collides();
+    auto bi = back_illumination_sensor.collides();
+    auto flu = front_left_ultrasonic.read();
+    auto fru = front_right_ultrasonic.read();
+    auto lu = left_ultrasonic.read();
+    auto ru = right_ultrasonic.read();
+    auto ir = infrared.read();
     return SensorsData {
-      front_left_illumination_sensor.collides(),
-      front_right_illumination_sensor.collides(),
-      back_illumination_sensor.collides(),
-      front_left_ultrasonic.read(),
-      front_right_ultrasonic.read(),
-      left_ultrasonic.read(),
-      right_ultrasonic.read(),
-      infrared.read()
+      fli, fri, bi,
+      flu, fru, lu, ru, ir
     };
   }
 
