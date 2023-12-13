@@ -517,7 +517,7 @@ void apply_movement()
     else if (state == State::StartRotateLeftStill)
     {
         motors.rotate_left_still(state_data.speed + 2, 2 * (state_data.speed + 2), 100);
-        motors.rotate_left_still(state_data.speed + 2, 2 * (state_data.speed + 2));
+        motors.rotate_left_still(state_data.speed, 2 * state_data.speed);
     }
     else if (state == State::StartRotateRightStill)
     {
