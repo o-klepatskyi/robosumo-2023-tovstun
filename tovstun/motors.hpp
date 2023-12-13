@@ -93,6 +93,8 @@ struct Motors
 
     void rotate_right_90_degrees();
 
+    void rotate_back();
+
     void stop() { move(0); }
 
     // ASSUME: speed for motors is equal

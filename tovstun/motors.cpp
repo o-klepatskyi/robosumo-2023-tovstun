@@ -162,3 +162,9 @@ void Motors::rotate_right_90_degrees()
     rotate_right_still(DEFAULT_ROTATION_SPEED, 2  * DEFAULT_ROTATION_SPEED, ROT_90_DEG_DURATION);
     stop();
 }
+
+void Motors::rotate_back()
+{
+    // TODO!!!!!!
+    // rotate 180 degrees back +-20 degrees
+}

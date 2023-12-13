@@ -15,12 +15,13 @@ enum class State {
   // RotateRightBack,
   RotateLeft90Degrees,
   RotateRight90Degrees,
+  RotateBack,
   RedButtonStopped,
 };
 
 struct StateData {
   int speed = 0;
-  int duration = 1000;
+  int duration = 0;
 };
 
 static const char* state_to_string(State state) noexcept
@@ -55,6 +56,8 @@ static const char* state_to_string(State state) noexcept
         return "RotateLeft90Degrees";
     case State::RotateRight90Degrees:
         return "RotateRight90Degrees";
+    case State::RotateBack:
+        return "RotateBack";
     case State::RedButtonStopped:
         return "RedButtonStopped";
     default:
