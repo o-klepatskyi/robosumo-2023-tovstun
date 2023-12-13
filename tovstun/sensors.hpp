@@ -68,9 +68,12 @@ extern Illumination_sensor front_left_illumination_sensor;
 extern Illumination_sensor front_right_illumination_sensor;
 extern Illumination_sensor back_illumination_sensor;
 
-static constexpr int FRONT_DETECTION_THRESHOLD = 20;
-static constexpr int BACK_DETECTION_THRESHOLD = 200; // !!!milimeters!!!
-static constexpr int SIDE_DETECTION_THRESHOLD = 20;
+
+static constexpr int FRONT_DETECTION_THRESHOLD_CLOSE = 10;
+static constexpr int FRONT_DETECTION_THRESHOLD = 50;
+static constexpr int BACK_DETECTION_THRESHOLD = 500; // !!!milimeters!!!
+static constexpr int SIDE_DETECTION_THRESHOLD = 50;
+
 struct SensorsData {
   bool is_fl_obstacle; // detected line on front left sensor
   bool is_fr_obstacle; // detected line on front right sensor
@@ -134,5 +137,11 @@ struct SensorsData {
   bool edge_detected() const noexcept
   {
     return is_fl_obstacle || is_fr_obstacle || is_back_obstacle;
+  }
+
+  bool enemy_close_front() const noexcept
+  {
+    return (fl_us_value <= FRONT_DETECTION_THRESHOLD_CLOSE && fl_us_value != 0)
+      || (fr_us_value <= FRONT_DETECTION_THRESHOLD_CLOSE && fr_us_value != 0);
   }
 };

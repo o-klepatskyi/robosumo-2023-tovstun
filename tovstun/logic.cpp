@@ -42,8 +42,8 @@ State checkButton()
 State rotate_test(const SensorsData& sensors)
 {
     static bool rotate_left = true;
-    // if (State::RedButtonStopped == checkButton())
-    //     return State::RedButtonStopped;
+    if (State::RedButtonStopped == checkButton())
+        return State::RedButtonStopped;
     
     if (state == State::StartRotateLeftStill)
         return State::RotatingLeftStill;
@@ -88,8 +88,8 @@ State rotate_test(const SensorsData& sensors)
 State rotate_test2(const SensorsData& sensors)
 {
     static bool rotate_left = true;
-    // if (State::RedButtonStopped == checkButton())
-    //     return State::RedButtonStopped;
+    if (State::RedButtonStopped == checkButton())
+        return State::RedButtonStopped;
     
     if (state == State::Default)
     {
@@ -128,15 +128,21 @@ State rotate_test2(const SensorsData& sensors)
 State move_test(const SensorsData& sensors)
 {
     static bool move_forward = true;
-    // if (State::RedButtonStopped == checkButton())
-    //     return State::RedButtonStopped;
+    if (State::RedButtonStopped == checkButton())
+        return State::RedButtonStopped;
     
     if (state == State::Default)
     {
-        state_data.duration = 1000;
-        state_data.speed = DEFAULT_ROTATION_SPEED;
         if (!move_forward)
-            state_data.speed = -state_data.speed;
+        {
+            state_data.duration = 2000;
+            state_data.speed = -7;
+        }
+        else
+        {
+            state_data.speed = 5;
+            state_data.duration = 1000;
+        }
         
         return State::AccelToSpeed;
     }
@@ -239,7 +245,8 @@ State rotate_loop(const SensorsData& sensors)
 static State move_from_edge(const SensorsData& sensors)
 {
     // TODO: fix rotations
-    #if 0 
+
+#if 0
     // if we only detect line behind, stop and accelerate forward
     if (sensors.is_back_obstacle && !sensors.is_fl_obstacle && !sensors.is_fr_obstacle)
     {
@@ -344,13 +351,12 @@ static State move_from_edge(const SensorsData& sensors)
         state_data.speed = 0;
         return State::Stop;
     }
-
+#endif
     // if we are here, either we detect nothing or detect line by all sensors
     // we will stop just in case
     state_data.speed = 0;
-    return State::Stop;
-    #endif
-    return state;
+    return State::RedButtonStopped;
+
 }
 
 // We do not assign state value directly
@@ -368,21 +374,71 @@ State state_transition(const SensorsData& sensors)
     {
         if (sensors.front_detects_enemy())
         {
-            state_data.speed = DEFAULT_SPEED;
-            return State::AccelToSpeed;
+            state_data.speed = DEFAULT_START_SPEED;
+            return State::StartAccel;
         }
         else if (sensors.left_detects_enemy())
         {
             state_data.speed = DEFAULT_ROTATION_SPEED;
-            return State::RotateLeft90Degrees;
+            return State::StartRotateLeftStill;
         }
         else if (sensors.right_detects_enemy())
         {
             state_data.speed = DEFAULT_ROTATION_SPEED;
-            return State::RotateRight90Degrees;
+            return State::StartRotateRightStill;
         }
 
         state_data.speed = -DEFAULT_SPEED;
+        return State::StartAccel;
+    }
+    else if (state == State::RotateLeft90Degrees)
+    {
+        return State::Default;
+    }
+    else if (state == State::RotateRight90Degrees)
+    {
+        return State::Default;
+    }
+    else if (state == State::Stop)
+    {
+        return State::Stop;
+    }
+    else if (state == State::StartAccel)
+    {
+        if (state_data.speed >= 0)
+            state_data.speed = DEFAULT_SPEED;
+        else
+            state_data.speed = -10;
+        return State::AccelToSpeed;
+    }
+    else if (state == State::StartRotateLeftStill)
+    {
+        return State::RotatingLeftStill;
+    }
+    else if (state == State::StartRotateRightStill)
+    {
+        return State::RotatingRightStill;
+    }
+    else if (state == State::RotatingLeftStill)
+    {
+        if (sensors.left_detects_enemy())
+        {
+            state_data.speed = DEFAULT_START_SPEED;
+            return State::StartAccel;
+        }
+    }
+    else if (state == State::RotatingRightStill)
+    {
+        if (sensors.right_detects_enemy())
+        {
+            state_data.speed = DEFAULT_START_SPEED;
+            return State::StartAccel;
+        }
+    }
+
+    if (sensors.enemy_close_front())
+    {
+        state_data.speed = 6;
         return State::AccelToSpeed;
     }
 
@@ -414,8 +470,10 @@ State state_transition(const SensorsData& sensors)
     // TODO: incorrect behaviour, enemy must be behind us
     if (sensors.no_enemy_detected())
     {
-        state_data.speed = DEFAULT_ROTATION_SPEED;
-        return State::StartRotateRightStill;
+        // state_data.speed = DEFAULT_ROTATION_SPEED;
+        // return State::StartRotateRightStill;
+        state_data.speed = - DEFAULT_START_SPEED;
+        return State::StartAccel;
     }
 
 #if 0 // for debugging
@@ -447,6 +505,10 @@ void apply_movement()
             motors.move(max(state_data.speed, motors.get_unite_speed() - DEFAULT_ACCELERATION));
         else if (state_data.speed <= 0 && motors.get_unite_speed() < state_data.speed)
             motors.move(min(state_data.speed, motors.get_unite_speed() + DEFAULT_ACCELERATION));
+    }
+    else if (state == State::StartAccel)
+    {
+        motors.move(state_data.speed);
     }
     else if (state == State::StartRotateLeftStill)
     {
@@ -497,4 +559,38 @@ void debug_print()
     Serial.println(static_cast<int>(state));
     Serial.print("PREV STATE: ");
     Serial.println(static_cast<int>(state));
+}
+
+void print_sensors(const SensorsData& sensor)
+{
+    Serial.print("FL: ");
+    Serial.println(sensor.fl_us_value);
+    Serial.print("FR: ");
+    Serial.println(sensor.fr_us_value);
+    Serial.print("L: ");
+    Serial.println(sensor.l_us_value);
+    Serial.print("R: ");
+    Serial.println(sensor.r_us_value);
+}
+
+void print_state()
+{
+    Serial.print("STATE:");
+    Serial.print(state_duration);
+    Serial.print(" | duration=");
+    Serial.print(state_data.duration);
+    Serial.print(", speed=");
+    Serial.println(state_data.speed);
+    Serial.println(state_to_string(state));
+}
+
+void print_ir_sensors()
+{
+    Serial.print("IR L: ");
+    Serial.println(front_left_illumination_sensor.read());
+    Serial.print("IR R: ");
+    Serial.println(front_right_illumination_sensor.read());
+    Serial.print("IR B: ");
+    Serial.println(back_illumination_sensor.read());
+    Serial.println();
 }

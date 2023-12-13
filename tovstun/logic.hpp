@@ -14,8 +14,12 @@ State rotate_test(const SensorsData& sensors);
 State rotate_test2(const SensorsData& sensors);
 State move_test(const SensorsData& sensors);
 State rotate_loop(const SensorsData& sensors);
+inline State empty(const SensorsData&) { return state; }
 
 // sends signals to motors depending on the current state
 void apply_movement();
 
 void debug_print();
+void print_sensors(const SensorsData& sensor);
+void print_state();
+void print_ir_sensors();

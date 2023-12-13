@@ -3,6 +3,7 @@
 enum class State {
   Default = 0, // State when the round hasn't yet started, but sensors can be read
   Stop,
+  StartAccel,
   AccelToSpeed,
   DecelToSpeed,
   HoldSpeed,
@@ -30,6 +31,8 @@ static const char* state_to_string(State state) noexcept
         return "Default";
     case State::Stop:
         return "Stop";
+    case State::StartAccel:
+        return "StartAccel";
     case State::AccelToSpeed:
         return "AccelToSpeed";
     case State::DecelToSpeed:

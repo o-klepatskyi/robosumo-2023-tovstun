@@ -3,10 +3,10 @@
 #include "sensors.hpp"
 #include "state.hpp"
 
-static constexpr int START_DELAY = 1000;
-static constexpr int LOOP_DELAY = 30;
+static constexpr int START_DELAY = 5000;
+static constexpr int LOOP_DELAY = 50;
 
-static constexpr int ROUND_TIME = 10 * 1000;
+static constexpr int ROUND_TIME = 100 * 1000;
 static int start_time = 0;
 static bool started = false;
 
@@ -24,10 +24,11 @@ void setup()
     motors.attach();
     motors.write_for(90, 2000);
     pinMode(red_button_pin, INPUT);
-    front_left_illumination_sensor.BLACK_THRESHOLD = 300;
+    front_left_illumination_sensor.BLACK_THRESHOLD = 310;
     front_right_illumination_sensor.BLACK_THRESHOLD = 320;
+    back_illumination_sensor.BLACK_THRESHOLD = 1000;
     // TODO: add back sensor
-    Serial.println("Hello robot!");
+    Serial.println("\n\nHello robot!");
 }
 
 void loop()
@@ -52,6 +53,7 @@ void loop()
     if (is_round_finished())
     {
         Serial.println("Round finished");
+        motors.stop();
         delay(LOOP_DELAY);
         return;
     }
@@ -67,8 +69,14 @@ void loop()
 
     prev_state = state;
     const SensorsData sensors = SensorsData::read();
+    // print_sensors(sensors);
+    // print_ir_sensors();
+
+    // Serial.print("ir: ");
+    // Serial.println(sensors.b_ir_value);
 
     State newState = state_transition(sensors);
+    // State newState = empty(sensors);
 
     if (newState != state)
     {
@@ -76,13 +84,7 @@ void loop()
         state = newState;
     }
 
-    Serial.print("STATE:");
-    Serial.print(state_duration);
-    Serial.print(" | duration=");
-    Serial.print(state_data.duration);
-    Serial.print(", speed=");
-    Serial.println(state_data.speed);
-    Serial.println(state_to_string(state));
+    print_state();
 
     apply_movement();
 

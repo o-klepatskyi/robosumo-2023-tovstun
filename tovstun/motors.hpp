@@ -18,15 +18,15 @@ const float rotation_circumference = PI * wheelbase;
 const float rotation_distance = rotation_circumference / 4; // For 90 degrees
 const float rotation_speed = 0.2;                           // Speed of wheel rotation in meters per second
 
-const int rotation_90_degree_forward = 95;
-const int rotation_90_degree_backward = 80;
-const unsigned long ROT_90_DEG_DURATION = 500; // TODO:
+// const int rotation_90_degree_forward = 95;
+// const int rotation_90_degree_backward = 80;
+const unsigned long ROT_90_DEG_DURATION = 1500; // TODO:
 
 // TODO: review this constants
 static constexpr int DEFAULT_ACCELERATION = 1; // amount of speed we add each loop
-static constexpr int DEFAULT_SPEED = 2;
+static constexpr int DEFAULT_SPEED = 6;
 static constexpr int DEFAULT_START_SPEED = 3;
-static constexpr int DEFAULT_ROTATION_SPEED = 5; // for negative speed it will be twice as big
+static constexpr int DEFAULT_ROTATION_SPEED = 6; // for negative speed it will be twice as big
 
 struct Flag
 {

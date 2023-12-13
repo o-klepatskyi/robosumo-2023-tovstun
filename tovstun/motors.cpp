@@ -153,12 +153,12 @@ void Motors::rotate_right_still(int forward, int backward, unsigned long long du
 
 void Motors::rotate_left_90_degrees()
 {
-    rotate_left_still(DEFAULT_ROTATION_SPEED, - 2  * DEFAULT_ROTATION_SPEED, ROT_90_DEG_DURATION);
+    rotate_left_still(DEFAULT_ROTATION_SPEED, 2  * DEFAULT_ROTATION_SPEED, ROT_90_DEG_DURATION);
     stop();
 }
 
 void Motors::rotate_right_90_degrees()
 {
-    rotate_right_still(DEFAULT_ROTATION_SPEED, - 2  * DEFAULT_ROTATION_SPEED, ROT_90_DEG_DURATION);
+    rotate_right_still(DEFAULT_ROTATION_SPEED, 2  * DEFAULT_ROTATION_SPEED, ROT_90_DEG_DURATION);
     stop();
 }
