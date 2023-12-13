@@ -10,12 +10,6 @@ State state = State::Default;
 State next_state = State::Default;
 State prev_state = State::Default;
 
-// TODO: review this constants
-static constexpr int DEFAULT_ACCELERATION = 1; // amount of speed we add each loop
-static constexpr int DEFAULT_SPEED = 2;
-static constexpr int DEFAULT_START_SPEED = 3;
-static constexpr int DEFAULT_ROTATION_SPEED = 5; // for negative speed it will be twice as big
-
 static bool moving_forwards() noexcept
 {
     return (state == State::AccelToSpeed || state == State::DecelToSpeed || state == State::HoldSpeed) && state_data.speed > 0;
