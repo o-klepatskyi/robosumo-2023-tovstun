@@ -41,7 +41,7 @@ State checkButton()
 // only use this for testing
 State rotate_test(const SensorsData& sensors)
 {
-    static bool rotate_left = true;
+    static bool rotate_left = false;
     if (State::RedButtonStopped == checkButton())
         return State::RedButtonStopped;
     
@@ -53,7 +53,6 @@ State rotate_test(const SensorsData& sensors)
     
     if (state == State::Default)
     {
-        state_data.duration = 1000;
         state_data.speed = DEFAULT_ROTATION_SPEED;
         if (rotate_left)
             return State::StartRotateLeftStill;
@@ -517,15 +516,19 @@ void apply_movement()
     else if (state == State::StartRotateLeftStill)
     {
         motors.rotate_left_still(state_data.speed + 2, 2 * (state_data.speed + 2), 100);
-        motors.rotate_left_still(state_data.speed, 2 * state_data.speed);
+      //  motors.rotate_left_still(state_data.speed, 2 * state_data.speed);
     }
     else if (state == State::StartRotateRightStill)
     {
-        motors.rotate_right_still(state_data.speed, 2 * state_data.speed, 100);
+        motors.rotate_right_still(state_data.speed + 2, 2 * (state_data.speed + 2), 100);
     }
     else if (state == State::RotatingLeftStill)
     {
-        motors.rotate_left_still(state_data.speed, 2 * state_data.speed);
+        motors.rotate_left_still(state_data.speed + 2, 2 * (state_data.speed + 2), 20);
+    }
+    else if (state == State::RotatingRightStill)
+    {
+        motors.rotate_right_still(state_data.speed + 2, 2 * (state_data.speed + 2), 20);
     }
     // else if (state == State::RotateLeftBack)
     // {
