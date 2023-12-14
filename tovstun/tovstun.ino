@@ -25,8 +25,8 @@ void setup()
     motors.write_for(90, 2000);
     pinMode(red_button_pin, INPUT);
     front_left_illumination_sensor.BLACK_THRESHOLD = 310;
-    front_right_illumination_sensor.BLACK_THRESHOLD = 320;
-    back_illumination_sensor.BLACK_THRESHOLD = 1000;
+    front_right_illumination_sensor.BLACK_THRESHOLD = 450;
+    back_illumination_sensor.BLACK_THRESHOLD = 350;
     // TODO: add back sensor
     Serial.println("\n\nHello robot!");
 }
