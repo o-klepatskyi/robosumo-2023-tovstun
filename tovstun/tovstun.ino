@@ -6,7 +6,7 @@
 static constexpr int START_DELAY = 5000;
 static constexpr int LOOP_DELAY = 1;
 
-static constexpr int ROUND_TIME = 5 * 1000;
+static constexpr int ROUND_TIME = 130 * 1000;
 static int start_time = 0;
 static bool started = false;
 
@@ -75,7 +75,7 @@ void loop()
     // Serial.print("ir: ");
     // Serial.println(sensors.b_ir_value);
 
-    State newState = rotate_test(sensors);
+    State newState = state_transition(sensors);
     // State newState = empty(sensors);
 
     if (newState != state)

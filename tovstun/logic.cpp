@@ -10,6 +10,8 @@ State state = State::Default;
 State next_state = State::Default;
 State prev_state = State::Default;
 
+static bool enemy_was_back = false;
+
 static bool moving_forwards() noexcept
 {
     return (state == State::AccelToSpeed || state == State::DecelToSpeed || state == State::HoldSpeed) && state_data.speed > 0;
@@ -244,122 +246,33 @@ State rotate_loop(const SensorsData& sensors)
 }
 
 // defines state transitions if we detect edge line
-// TODO: we need to improve the way robot moves away from the edge
 static State move_from_edge(const SensorsData& sensors)
 {
-    // TODO: fix rotations
-
-#if 0
-    // if we only detect line behind, stop and accelerate forward
-    if (sensors.is_back_obstacle && !sensors.is_fl_obstacle && !sensors.is_fr_obstacle)
+    enemy_was_back = false;
+    if (sensors.is_back_obstacle)
     {
-        if (moving_forwards())
+        state_data.duration = 1000; // Just do a quick movement
+        state_data.speed = DEFAULT_START_SPEED; // TODO: recheck if this speed is sufficient
+        if (sensors.enemy_detected())
         {
-            return state; // OK, continue moving into center
+            state_data.speed = 8;
+            // TODO: add panic state???
         }
-        else if (stopped())
-        {
-            state_data.speed = DEFAULT_SPEED;
-            return State::AccelToSpeed;
-        }
-
-        state_data.speed = 0;
-        return State::Stop;
+        return State::StartAccel;
     }
 
-    // If we only detect line by the left sensor, move left back
-    // this way we will face the center
-    if (!sensors.is_back_obstacle && sensors.is_fl_obstacle && !sensors.is_fr_obstacle)
+    if (sensors.is_fl_obstacle || sensors.is_fr_obstacle)
     {
-        if (state == State::RotateLeftBack) // or rotate right still
-        {
-            return state; // OK, continue rotating until we do not see the edge
-        }
-        else if (stopped())
-        {
-            state_data.speed = DEFAULT_ROTATION_SPEED;
-            return State::RotateLeftBack;
-        }
-
-        state_data.speed = 0;
-        return State::Stop;
+        state_data.duration = 1000;
+        state_data.speed = -DEFAULT_START_SPEED - 2; // TODO: recheck if this speed is sufficient
+        next_state = State::RotateBack;
+        return State::StartAccel;
     }
 
-    // If we only detect line by the right sensor, move right back
-    // this way we will face the center
-    if (!sensors.is_back_obstacle && !sensors.is_fl_obstacle && sensors.is_fr_obstacle)
-    {
-        if (state == State::RotateRightBack) // or rotate left still
-        {
-            return state; // OK, continue rotating until we do not see the edge
-        }
-        else if (stopped())
-        {
-            state_data.speed = DEFAULT_ROTATION_SPEED;
-            return State::RotateRightBack;
-        }
-
-        state_data.speed = 0;
-        return State::Stop;
-    }
-
-    // If we detect line by both front sensors, stop and start moving backwards
-    // TODO: we need to make sure we won't start moving forward after that (maybe move back and rotate?)
-    if (!sensors.is_back_obstacle && sensors.is_fl_obstacle && sensors.is_fr_obstacle)
-    {
-        if (moving_backwards())
-        {
-            return state; // OK, continue moving back into center
-        }
-        else if (stopped())
-        {
-            state = State::AccelToSpeed;
-            state_data.speed = -DEFAULT_SPEED;
-        }
-
-        state_data.speed = 0;
-        return State::Stop;
-    }
-
-    // If we detect line by both back and left sensors, rotate right until only back sensor detects line
-    if (sensors.is_back_obstacle && sensors.is_fl_obstacle && !sensors.is_fr_obstacle)
-    {
-        if (state == State::RotateRightStill) // or just move forward
-        {
-            return state;
-        }
-        else if (stopped())
-        {
-            state_data.speed = DEFAULT_ROTATION_SPEED;
-            return State::RotateRightStill;
-        }
-
-        state_data.speed = 0;
-        return State::Stop;
-    }
-
-    // If we detect line by both back and right sensors, rotate left until only back sensor detects line
-    if (sensors.is_back_obstacle && !sensors.is_fl_obstacle && sensors.is_fr_obstacle)
-    {
-        if (state == State::RotateLeftStill) // or just move forward
-        {
-            return state;
-        }
-        else if (stopped())
-        {
-            state_data.speed = DEFAULT_ROTATION_SPEED;
-            return State::RotateLeftStill;
-        }
-
-        state_data.speed = 0;
-        return State::Stop;
-    }
-#endif
     // if we are here, either we detect nothing or detect line by all sensors
     // we will stop just in case
-    state_data.speed = 0;
-    return State::RedButtonStopped;
-
+    state_data = {};
+    return State::Stop;
 }
 
 // We do not assign state value directly
@@ -372,29 +285,8 @@ State state_transition(const SensorsData& sensors)
     // Firstly check the edge
     if (sensors.edge_detected())
         return move_from_edge(sensors);
-
-    if (state == State::Default)
-    {
-        if (sensors.front_detects_enemy())
-        {
-            state_data.speed = DEFAULT_START_SPEED;
-            return State::StartAccel;
-        }
-        else if (sensors.left_detects_enemy())
-        {
-            state_data.speed = DEFAULT_ROTATION_SPEED;
-            return State::StartRotateLeftStill;
-        }
-        else if (sensors.right_detects_enemy())
-        {
-            state_data.speed = DEFAULT_ROTATION_SPEED;
-            return State::StartRotateRightStill;
-        }
-
-        state_data.speed = -DEFAULT_SPEED;
-        return State::StartAccel;
-    }
-    else if (state == State::RotateLeft90Degrees)
+    
+    if (state == State::RotateLeft90Degrees)
     {
         return State::Default;
     }
@@ -404,27 +296,46 @@ State state_transition(const SensorsData& sensors)
     }
     else if (state == State::Stop)
     {
-        return State::Stop;
+        // we can determine what we will do after stop
+        State next = next_state;
+        next_state = State::Default;
+        return next;
     }
     else if (state == State::StartAccel)
     {
+        // this is the case when we want sudden move forward
+        if (state_data.duration > 0)
+        {
+            if (state_duration >= state_data.duration)
+            {
+                state_data = {};
+                return State::Stop;
+            }
+            return state;
+        }
+        // if duration was zero, we continue moving forward until we see enemy
+        // we set normal speed after we gained some momentum
         if (state_data.speed >= 0)
             state_data.speed = DEFAULT_SPEED;
         else
-            state_data.speed = -10;
+            state_data.speed = - DEFAULT_SPEED - 2; // TODO
         return State::AccelToSpeed;
     }
     else if (state == State::StartRotateLeftStill)
     {
+        // TODO: review rotating code
         return State::RotatingLeftStill;
     }
     else if (state == State::StartRotateRightStill)
     {
+        // TODO: review rotating code
         return State::RotatingRightStill;
     }
     else if (state == State::RotatingLeftStill)
     {
-        if (sensors.left_detects_enemy())
+        // TODO: review rotating code
+        // TODO: add rotation stop when it starts rotating back
+        if (sensors.front_detects_enemy())
         {
             state_data.speed = DEFAULT_START_SPEED;
             return State::StartAccel;
@@ -432,64 +343,94 @@ State state_transition(const SensorsData& sensors)
     }
     else if (state == State::RotatingRightStill)
     {
-        if (sensors.right_detects_enemy())
+        // TODO: review rotating code
+        // TODO: add rotation stop when it starts rotating back
+        if (sensors.front_detects_enemy())
         {
             state_data.speed = DEFAULT_START_SPEED;
             return State::StartAccel;
         }
     }
-
-    if (sensors.enemy_close_front())
+    else if (state == State::RotateBack)
     {
-        state_data.speed = 6;
+        state_data.speed = 0;
+        state_data.duration = 0;
+        return State::Stop;
+    }
+    else if (state == State::AccelToSpeed)
+    {
+        // we need to give more power if we are pushing enemy
+        if (sensors.enemy_close_front())
+        {
+            // TODO: review this speeds
+            if (state_data.speed > 0)
+                state_data.speed = 8;
+            else
+                state_data.speed = -10;
+            return State::AccelToSpeed;
+        }
+        // if (state_data.duration > 0 && state_duration >= state_data.duration)
+        // {
+        //     state_data = {};
+        //     next_state = State::Default;
+        //     return State::Stop;
+        // }
+
+        // we do not return here so we can detect enemy on our way
+    }
+
+    // TODO: maybe we need to align ourselves with the enemy so both sensors see him???
+    // TODO: we will move with slight turn instead
+    // Artem
+    
+    // ENEMY DETECTION
+
+    // TODO: if we are moving and want to start rotation, maybe we need to stop moving first
+
+    if (enemy_was_back)
+    {
+        state_data.speed = -10;
         return State::AccelToSpeed;
     }
 
-    // if there is something in the front: accel + positive speed
-    // TODO: maybe we need to align ourselves with the enemy so both sensors see him???
     if (sensors.front_detects_enemy())
     {
-        state_data.speed = DEFAULT_SPEED;
+        state_data.speed = DEFAULT_START_SPEED;
+        state_data.duration = 0;
+        return State::StartAccel;
+    }
+    else if (sensors.left_detects_enemy())
+    {
+        state_data.speed = DEFAULT_ROTATION_SPEED;
+        state_data.duration = 0;
+        return State::StartRotateLeftStill;
+    }
+    else if (sensors.right_detects_enemy())
+    {
+        state_data.speed = DEFAULT_ROTATION_SPEED;
+        state_data.duration = 0;
+        return State::StartRotateRightStill;
+    }
+    else if (sensors.back_detects_enemy())
+    {
+        enemy_was_back = true;
+        // TODO: rotate and move forward???
+        state_data.speed = -10;
+        state_data.duration = 0;
         return State::AccelToSpeed;
     }
-     if (sensors.left_detects_enemy())
-     {
-        state_data.speed = DEFAULT_ROTATION_SPEED;
-        return State::RotateLeft90Degrees;
-     }
-     if (sensors.right_detects_enemy())
-     {
-        state_data.speed = DEFAULT_ROTATION_SPEED;
-        return State::RotateRight90Degrees;
-     }
-     if (sensors.back_detects_enemy())
-     {
-        state_data.speed = -DEFAULT_SPEED;
-        return State::AccelToSpeed;
-     }
 
-    // if there is nothing at front or sideways or back we will rotate righ while we will not see _something_ with front
-    // sensor
-    // TODO: incorrect behaviour, enemy must be behind us
+    // if we do not see enemy anywhere, we move forward until we see a line
+    // if we are already moving, continue moving to the line
     if (sensors.no_enemy_detected())
     {
-        // state_data.speed = DEFAULT_ROTATION_SPEED;
-        // return State::StartRotateRightStill;
-        state_data.speed = - DEFAULT_START_SPEED;
+        if (state == State::AccelToSpeed && state_data.speed > 0)
+            return state;
+        state_data.duration = 0;
+        state_data.speed = DEFAULT_START_SPEED;
         return State::StartAccel;
     }
 
-#if 0 // for debugging
-    if (front_left_ultrasonic.read() < 20) {
-      state = State::AccelToSpeed;
-      state_data.speed = 15;
-    }
-    else {
-      state = State::DecelToSpeed;
-      // prev_state = state;
-      state_data.speed = 0;
-    }
-#endif
     return state; // by default the same state is remained
 }
 
@@ -515,12 +456,11 @@ void apply_movement()
     }
     else if (state == State::StartRotateLeftStill)
     {
-        motors.rotate_left_still(state_data.speed + 2, 2 * (state_data.speed + 2), 100);
-      //  motors.rotate_left_still(state_data.speed, 2 * state_data.speed);
+        motors.rotate_left_still(state_data.speed + 2, 2 * (state_data.speed + 2), 20);
     }
     else if (state == State::StartRotateRightStill)
     {
-        motors.rotate_right_still(state_data.speed + 2, 2 * (state_data.speed + 2), 100);
+        motors.rotate_right_still(state_data.speed + 2, 2 * (state_data.speed + 2), 20);
     }
     else if (state == State::RotatingLeftStill)
     {
@@ -529,6 +469,15 @@ void apply_movement()
     else if (state == State::RotatingRightStill)
     {
         motors.rotate_right_still(state_data.speed + 2, 2 * (state_data.speed + 2), 20);
+    }
+    else if (state == State::RotateBack)
+    {
+        // motors.rotate_back();
+        motors.rotate_left_still(DEFAULT_ROTATION_SPEED + 2, 2 * (DEFAULT_ROTATION_SPEED + 2), 40);
+    }
+    else if (state == State::Stop || state == State::RedButtonStopped || state == State::Default)
+    {
+        motors.stop();
     }
     // else if (state == State::RotateLeftBack)
     // {
@@ -544,18 +493,6 @@ void apply_movement()
         //     motors.rotate_right(state_data.speed);
         // }
     // }
-    else if (state == State::RotateLeft90Degrees)
-    {
-       motors.rotate_left_90_degrees();
-    }
-    else if (state == State::RotateRight90Degrees)
-    {
-       motors.rotate_right_90_degrees();
-    }
-    else if (state == State::Stop || state == State::RedButtonStopped || state == State::Default)
-    {
-        motors.stop();
-    }
 }
 
 void debug_print()
@@ -583,6 +520,8 @@ void print_sensors(const SensorsData& sensor)
     Serial.println(sensor.l_us_value);
     Serial.print("R: ");
     Serial.println(sensor.r_us_value);
+    Serial.print("B: ");
+    Serial.println(sensor.b_ir_value);
 }
 
 void print_state()
