@@ -413,11 +413,11 @@ State state_transition(const SensorsData& sensors)
     }
     else if (sensors.back_detects_enemy())
     {
-        enemy_was_back = true;
+        // enemy_was_back = true;
         // TODO: rotate and move forward???
-        state_data.speed = -10;
+        state_data.speed = DEFAULT_ROTATION_SPEED;
         state_data.duration = 0;
-        return State::AccelToSpeed;
+        return State::StartRotateLeftStill;
     }
 
     // if we do not see enemy anywhere, we move forward until we see a line
