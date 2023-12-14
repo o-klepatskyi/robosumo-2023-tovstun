@@ -10,6 +10,8 @@ State state = State::Default;
 State next_state = State::Default;
 State prev_state = State::Default;
 
+static bool enemy_was_back = false;
+
 static bool moving_forwards() noexcept
 {
     return (state == State::AccelToSpeed || state == State::DecelToSpeed || state == State::HoldSpeed) && state_data.speed > 0;
@@ -246,6 +248,7 @@ State rotate_loop(const SensorsData& sensors)
 // defines state transitions if we detect edge line
 static State move_from_edge(const SensorsData& sensors)
 {
+    enemy_was_back = false;
     if (sensors.is_back_obstacle)
     {
         state_data.duration = 1000; // Just do a quick movement
@@ -393,24 +396,36 @@ State state_transition(const SensorsData& sensors)
     else if (sensors.left_detects_enemy())
     {
         state_data.speed = DEFAULT_ROTATION_SPEED;
+        state_data.duration = 0;
         return State::StartRotateLeftStill;
     }
     else if (sensors.right_detects_enemy())
     {
         state_data.speed = DEFAULT_ROTATION_SPEED;
+        state_data.duration = 0;
         return State::StartRotateRightStill;
     }
     else if (sensors.back_detects_enemy())
     {
+        enemy_was_back = true;
         // TODO: rotate and move forward???
         state_data.speed = -DEFAULT_SPEED - 2;
+        state_data.duration = 0;
+        return State::AccelToSpeed;
+    }
+
+    if (enemy_was_back)
+    {
+        state_data.speed = -DEFAULT_SPEED - 3;
         return State::AccelToSpeed;
     }
 
     // if we do not see enemy anywhere, we move forward until we see a line
     // if we are already moving, continue moving to the line
-    if (state != State::AccelToSpeed && sensors.no_enemy_detected())
+    if (sensors.no_enemy_detected())
     {
+        if (state == State::AccelToSpeed && state_data.speed > 0)
+            return state;
         state_data.duration = 0;
         state_data.speed = DEFAULT_START_SPEED;
         return State::StartAccel;
