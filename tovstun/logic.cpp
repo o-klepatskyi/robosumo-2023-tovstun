@@ -498,6 +498,8 @@ void print_sensors(const SensorsData& sensor)
     Serial.println(sensor.l_us_value);
     Serial.print("R: ");
     Serial.println(sensor.r_us_value);
+    Serial.print("B: ");
+    Serial.println(sensor.b_ir_value);
 }
 
 void print_state()
