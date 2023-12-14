@@ -6,7 +6,7 @@
 static constexpr int START_DELAY = 5000;
 static constexpr int LOOP_DELAY = 1;
 
-static constexpr int ROUND_TIME = 130 * 1000;
+static constexpr int ROUND_TIME = 15 * 1000;
 static int start_time = 0;
 static bool started = false;
 
@@ -27,6 +27,12 @@ void setup()
     front_left_illumination_sensor.BLACK_THRESHOLD = 310;
     front_right_illumination_sensor.BLACK_THRESHOLD = 450;
     back_illumination_sensor.BLACK_THRESHOLD = 350;
+
+    // for testing field
+    // front_left_illumination_sensor.BLACK_THRESHOLD = 500;
+    // front_right_illumination_sensor.BLACK_THRESHOLD = 600;
+    // back_illumination_sensor.BLACK_THRESHOLD = 700;
+
     // TODO: add back sensor
     Serial.println("\n\nHello robot!");
 }
