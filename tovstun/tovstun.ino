@@ -75,7 +75,7 @@ void loop()
     // Serial.print("ir: ");
     // Serial.println(sensors.b_ir_value);
 
-    State newState = rotate_test(sensors);
+    State newState = state_transition(sensors);
     // State newState = empty(sensors);
 
     if (newState != state)

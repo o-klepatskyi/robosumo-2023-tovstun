@@ -252,7 +252,7 @@ static State move_from_edge(const SensorsData& sensors)
         state_data.speed = DEFAULT_START_SPEED; // TODO: recheck if this speed is sufficient
         if (sensors.enemy_detected())
         {
-            state_data.speed = 15;
+            state_data.speed = 8;
             // TODO: add panic state???
         }
         return State::StartAccel;
@@ -347,6 +347,12 @@ State state_transition(const SensorsData& sensors)
             state_data.speed = DEFAULT_START_SPEED;
             return State::StartAccel;
         }
+    }
+    else if (state == State::RotateBack)
+    {
+        state_data.speed = 0;
+        state_data.duration = 0;
+        return State::Stop;
     }
     else if (state == State::AccelToSpeed)
     {
@@ -451,7 +457,8 @@ void apply_movement()
     }
     else if (state == State::RotateBack)
     {
-        motors.rotate_back();
+        // motors.rotate_back();
+        motors.rotate_left_still(DEFAULT_ROTATION_SPEED + 2, 2 * (DEFAULT_ROTATION_SPEED + 2), 40);
     }
     else if (state == State::Stop || state == State::RedButtonStopped || state == State::Default)
     {
