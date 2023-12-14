@@ -448,15 +448,15 @@ State state_transition(const SensorsData& sensors)
 
     // if there is something in the front: accel + positive speed
     // TODO: maybe we need to align ourselves with the enemy so both sensors see him???
-    if(sensors.fl_detects_enemy() || !sensors.fr_detects_enemy())
+    if (sensors.fl_detects_enemy() && !sensors.fr_detects_enemy())
     {
         state_data.speed = DEFAULT_SPEED;
         return State::AccelToSpeedEnemyOnTheLeft;
     }
-    if(sensors.fr_detects_enemy() || !sensors.fl_detects_enemy())
+    if (!sensors.fl_detects_enemy() && sensors.fr_detects_enemy())
     {
         state_data.speed = DEFAULT_SPEED;
-        return State::AccelToSpeedEnemyOnTheLeft;
+        return State::AccelToSpeedEnemyOnTheRight;
     }
     if (sensors.front_detects_enemy())
     {
@@ -513,15 +513,16 @@ void apply_movement()
         else if (state_data.speed <= 0 && motors.get_unite_speed() > state_data.speed)
             motors.move(max(state_data.speed, motors.get_unite_speed() - DEFAULT_ACCELERATION));
     }
-    else if(state == State::AccelToSpeedEnemyOnTheRight)
+    else if(state == State::AccelToSpeedEnemyOnTheLeft)
     {
-      int speed = min(state_data.speed, motors.get_unite_speed() + DEFAULT_ACCELERATION);
-         motors.move_sideways(speed - SIDEWAYS_DIFFERENCE, speed);
+        // int speed = min(state_data.speed, motors.get_unite_speed() + DEFAULT_ACCELERATION);
+        motors.move_sideways(state_data.speed - SIDEWAYS_DIFFERENCE, state_data.speed);
     }
     else if(state == State::AccelToSpeedEnemyOnTheRight)
     {
-      int speed = min(state_data.speed, motors.get_unite_speed() + DEFAULT_ACCELERATION);
-         motors.move_sideways(speed, speed - SIDEWAYS_DIFFERENCE);
+        // broken logic, negative overflow
+        // int speed = min(state_data.speed, motors.get_unite_speed() + DEFAULT_ACCELERATION);
+        motors.move_sideways(state_data.speed, state_data.speed - SIDEWAYS_DIFFERENCE);
     }
     else if (state == State::DecelToSpeed)
     {

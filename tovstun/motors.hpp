@@ -27,7 +27,7 @@ static constexpr int DEFAULT_ACCELERATION = 1; // amount of speed we add each lo
 static constexpr int DEFAULT_SPEED = 6;
 static constexpr int DEFAULT_START_SPEED = 3;
 static constexpr int DEFAULT_ROTATION_SPEED = 4; // for negative speed it will be twice as big
-static constexpr int SIDEWAYS_DIFFERENCE = 1;
+static constexpr int SIDEWAYS_DIFFERENCE = 2;
 
 struct Flag
 {

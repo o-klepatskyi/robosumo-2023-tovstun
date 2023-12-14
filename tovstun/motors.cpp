@@ -63,14 +63,12 @@ void Motors::move(int speed)
         write_for(actual_speed, 40);
     }
 }
+
 void Motors::move_sideways(int speed_l, int speed_r)
 {
-  prepare_forward(true, true);
-  write_for_different_speed(speed_l, speed_r, 40);
-
+    prepare_forward(true, true);
+    write_for_different_speed(speed_l, speed_r, 40);
 }
-
-
 
 void Motors::prepare_left_forward_right_backward()
 {
