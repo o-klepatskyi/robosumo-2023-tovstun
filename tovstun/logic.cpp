@@ -252,7 +252,7 @@ static State move_from_edge(const SensorsData& sensors)
     if (sensors.is_back_obstacle)
     {
         state_data.duration = 1000; // Just do a quick movement
-        state_data.speed = DEFAULT_START_SPEED; // TODO: recheck if this speed is sufficient
+        state_data.speed = 8; // TODO: recheck if this speed is sufficient
         if (sensors.enemy_detected())
         {
             state_data.speed = 8;
@@ -264,7 +264,7 @@ static State move_from_edge(const SensorsData& sensors)
     if (sensors.is_fl_obstacle || sensors.is_fr_obstacle)
     {
         state_data.duration = 1000;
-        state_data.speed = -DEFAULT_START_SPEED - 2; // TODO: recheck if this speed is sufficient
+        state_data.speed = -8; // TODO: recheck if this speed is sufficient
         next_state = State::RotateBack;
         return State::StartAccel;
     }
@@ -369,12 +369,12 @@ State state_transition(const SensorsData& sensors)
                 state_data.speed = -10;
             return State::AccelToSpeed;
         }
-        // if (state_data.duration > 0 && state_duration >= state_data.duration)
-        // {
-        //     state_data = {};
-        //     next_state = State::Default;
-        //     return State::Stop;
-        // }
+        if (state_data.duration > 0 && state_duration >= state_data.duration)
+        {
+            state_data = {};
+            next_state = State::Default;
+            return State::Stop;
+        }
 
         // we do not return here so we can detect enemy on our way
     }
