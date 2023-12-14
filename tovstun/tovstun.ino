@@ -6,7 +6,7 @@
 static constexpr int START_DELAY = 5000;
 static constexpr int LOOP_DELAY = 1;
 
-static constexpr int ROUND_TIME = 7 * 1000;
+static constexpr int ROUND_TIME = 130 * 1000;
 static int start_time = 0;
 static bool started = false;
 
