@@ -24,8 +24,8 @@ const unsigned long ROT_90_DEG_DURATION = 1500; // TODO:
 
 // TODO: review this constants
 static constexpr int DEFAULT_ACCELERATION = 1; // amount of speed we add each loop
-static constexpr int DEFAULT_SPEED = 5;
-static constexpr int DEFAULT_START_SPEED = 3;
+static constexpr int DEFAULT_SPEED = 17;
+static constexpr int DEFAULT_START_SPEED = 7;
 static constexpr int DEFAULT_ROTATION_SPEED = 4; // for negative speed it will be twice as big
 
 struct Flag

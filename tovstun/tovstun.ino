@@ -6,7 +6,7 @@
 static constexpr int START_DELAY = 5000;
 static constexpr int LOOP_DELAY = 1;
 
-static constexpr int ROUND_TIME = 15 * 1000;
+static constexpr int ROUND_TIME = 130 * 1000;
 static int start_time = 0;
 static bool started = false;
 
@@ -24,9 +24,9 @@ void setup()
     motors.attach();
     motors.write_for(90, 2000);
     pinMode(red_button_pin, INPUT);
-    front_left_illumination_sensor.BLACK_THRESHOLD = 310;
-    front_right_illumination_sensor.BLACK_THRESHOLD = 450;
-    back_illumination_sensor.BLACK_THRESHOLD = 350;
+    front_left_illumination_sensor.BLACK_THRESHOLD = 360;
+    front_right_illumination_sensor.BLACK_THRESHOLD = 500;
+    back_illumination_sensor.BLACK_THRESHOLD = 410;
 
     // for testing field
     // front_left_illumination_sensor.BLACK_THRESHOLD = 500;

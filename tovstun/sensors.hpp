@@ -70,9 +70,9 @@ extern Illumination_sensor back_illumination_sensor;
 
 
 static constexpr int FRONT_DETECTION_THRESHOLD_CLOSE = 10;
-static constexpr int FRONT_DETECTION_THRESHOLD = 45;
-static constexpr int BACK_DETECTION_THRESHOLD = 500; // !!!milimeters!!!
-static constexpr int SIDE_DETECTION_THRESHOLD = 45;
+static constexpr int FRONT_DETECTION_THRESHOLD = 50;
+static constexpr int BACK_DETECTION_THRESHOLD = 400; // !!!milimeters!!!
+static constexpr int SIDE_DETECTION_THRESHOLD = 50;
 
 struct SensorsData {
   bool is_fl_obstacle; // detected line on front left sensor

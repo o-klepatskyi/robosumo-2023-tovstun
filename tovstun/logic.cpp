@@ -11,6 +11,7 @@ State next_state = State::Default;
 State prev_state = State::Default;
 
 static bool enemy_was_back = false;
+static bool enemy_was_forward = false;
 
 static bool moving_forwards() noexcept
 {
@@ -283,8 +284,20 @@ State state_transition(const SensorsData& sensors)
         return State::RedButtonStopped;
 
     // Firstly check the edge
-    if (sensors.edge_detected())
-        return move_from_edge(sensors);
+    // if (sensors.edge_detected())
+        // return move_from_edge(sensors);
+
+    if (enemy_was_back)
+    {
+        state_data.speed = -40;
+        return State::AccelToSpeed;
+    }
+
+    if (enemy_was_forward)
+    {
+        state_data.speed = 40;
+        return State::AccelToSpeed;
+    }
     
     if (state == State::RotateLeft90Degrees)
     {
@@ -364,17 +377,18 @@ State state_transition(const SensorsData& sensors)
         {
             // TODO: review this speeds
             if (state_data.speed > 0)
-                state_data.speed = 8;
+                state_data.speed = 60;
             else
                 state_data.speed = -10;
             return State::AccelToSpeed;
         }
-        if (state_data.duration > 0 && state_duration >= state_data.duration)
-        {
-            state_data = {};
-            next_state = State::Default;
-            return State::Stop;
-        }
+
+        // if (state_data.duration > 0 && state_duration >= state_data.duration)
+        // {
+        //     state_data = {};
+        //     next_state = State::Default;
+        //     return State::Stop;
+        // }
 
         // we do not return here so we can detect enemy on our way
     }
@@ -387,14 +401,9 @@ State state_transition(const SensorsData& sensors)
 
     // TODO: if we are moving and want to start rotation, maybe we need to stop moving first
 
-    if (enemy_was_back)
-    {
-        state_data.speed = -10;
-        return State::AccelToSpeed;
-    }
-
     if (sensors.front_detects_enemy())
     {
+        enemy_was_forward = true;
         state_data.speed = DEFAULT_START_SPEED;
         state_data.duration = 0;
         return State::StartAccel;
@@ -415,7 +424,7 @@ State state_transition(const SensorsData& sensors)
     {
         enemy_was_back = true;
         // TODO: rotate and move forward???
-        state_data.speed = -10;
+        state_data.speed = -20;
         state_data.duration = 0;
         return State::AccelToSpeed;
     }
